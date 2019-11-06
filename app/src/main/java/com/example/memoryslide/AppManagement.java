@@ -9,11 +9,11 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 
 public class AppManagement extends Fragment {
-    // TODO: Rename and change types of parameters
-
+    TextView text;
     private OnFragmentInteractionListener mListener;
 
     public AppManagement() {
@@ -31,13 +31,17 @@ public class AppManagement extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_app_management, container, false);
+        View v = inflater.inflate(R.layout.fragment_app_management, container, false);  // findViewByID 못쓰기때문에 요걸로 대체해야댐.
+        text = (TextView)v.findViewById(R.id.manage_text1);
+
+        text.setText("테스트");
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
