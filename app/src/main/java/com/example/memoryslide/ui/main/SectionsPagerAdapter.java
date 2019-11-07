@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.example.memoryslide.AppManagement;
+import com.example.memoryslide.Battery;
 import com.example.memoryslide.R;
 import com.example.memoryslide.Storage;
 
