@@ -33,7 +33,7 @@ public class AppManagement extends Fragment {
         super.onCreate(savedInstanceState);
 
     }
-
+//test
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
