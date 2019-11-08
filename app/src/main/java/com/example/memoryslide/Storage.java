@@ -17,10 +17,10 @@ public class Storage extends Fragment {
         // Required empty public constructor
     }
 
-    public static Storage newInstance() {
-        Storage fragment = new Storage();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
+        public static Storage newInstance() {
+            Storage fragment = new Storage();
+            Bundle args = new Bundle();
+            fragment.setArguments(args);
         return fragment;
     }
 
