@@ -9,6 +9,9 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TableLayout;
 
 public class Battery extends Fragment {
     private OnFragmentInteractionListener mListener;
@@ -33,7 +36,16 @@ public class Battery extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_battery, container, false);
+       /* View v = inflater.inflate(R.layout.fragment_battery, container, false);
+
+        LinearLayout linearLayout = new LinearLayout(getActivity());
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        RelativeLayout relativeLayout = new RelativeLayout(getActivity());
+
+        TableLayout tableLayout = new TableLayout(getActivity());
+        return v;*/
+       return inflater.inflate(R.layout.fragment_battery, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
