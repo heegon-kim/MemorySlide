@@ -12,23 +12,34 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
 
 public class AppManagement extends Fragment {
-    TextView text;
+    private RecyclerView mRecyclerView;
+    private RecyclerDataAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private ArrayList<AppInfo> mAppInfo;
     private OnFragmentInteractionListener mListener;
 
     public AppManagement() {
@@ -50,9 +61,37 @@ public class AppManagement extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_app_management, container, false);  // findViewByID 못쓰기때문에 요걸로 대체해야댐.
+
+        mRecyclerView = (RecyclerView) v.findViewById(R.id.recyclerView);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager((getActivity()));
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.scrollToPosition(0);
+
+        Spinner spinner = (Spinner) v.findViewById(R.id.sort);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {   // 선택된 정렬기준
+                mAppInfo = initDataset(position);
+                mAdapter = new RecyclerDataAdapter(mAppInfo);
+                mRecyclerView.setAdapter(mAdapter);
+                mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        return v;
+    }
+
+    public ArrayList<AppInfo> initDataset(int sorting) {
+        ArrayList<AppInfo> contacts = new ArrayList<AppInfo>();
 
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -60,80 +99,43 @@ public class AppManagement extends Fragment {
         ArrayList<String> apps = new ArrayList<String>();
         List<ResolveInfo> pack = getActivity().getPackageManager().queryIntentActivities(mainIntent, 0); // 실행가능한 package만
         // String[] arrayPkgName = new String[pack.size()];
-        Collections.sort(pack, new ResolveInfo.DisplayNameComparator(getActivity().getPackageManager()));   //패키지명 기준으로 정렬
 
+        Collections.sort(pack, new ResolveInfo.DisplayNameComparator(getActivity().getPackageManager()));   //앱이름 기준으로 정렬
+        if (sorting == 1)
+            Collections.reverse(pack);
         for (int i = 0; i < pack.size(); i++) { //apps에 패키지명 담기
             apps.add(pack.get(i).activityInfo.packageName);
             //arrayPkgName[i] = pack.get(i).activityInfo.packageName;
         }
 
-        // 패키지명을 이용해 아이콘 가져오기
-        Drawable[] app_icon = new Drawable[pack.size() + 1];
-        try {
-            for (int i = 0; i < pack.size(); i++) {
-                app_icon[i] = getActivity().getPackageManager().getApplicationIcon(apps.get(i));
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        // 패키지명을 이용해 앱 이름 가져오기
-        String app_name = null;
-
-        // ScrollView 위에 LinearLayout 위에 TextView들(앱목록)
-        ScrollView scroller = new ScrollView(getActivity());
-        LinearLayout rootLinearPanel = new LinearLayout(getActivity());
-        rootLinearPanel.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout[] linearPanel = new LinearLayout[pack.size() + 1];
-        LinearLayout[] linearByAppInfo = new LinearLayout[pack.size() + 1]; // 불러운 패키지 개수만큼 할당
-        TextView[] appName = new TextView[pack.size() + 1]; // 불러운 패키지 개수만큼 할당
-        View line = new View(getActivity());
-        line.setBackgroundColor(Color.GRAY);
-
-        ViewGroup.LayoutParams lineParam = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        lineParam.height = (int) getResources().getDimension(R.dimen.line_height);
-        line.setLayoutParams(lineParam);
-        float marginSize = getResources().getDimension(R.dimen.appname_margin); // java소스로는 dp size를 나타낼수 없어서 불러옴
+        String[] app_name = new String[pack.size() + 1];     // 앱 이름
+        Drawable[] app_icon = new Drawable[pack.size() + 1];// 패키지명을 이용해 아이콘 가져오기
 
         for (int i = 0; i < pack.size(); i++) {
-            linearPanel[i] = new LinearLayout(getActivity());
-            linearPanel[i].setOrientation(LinearLayout.HORIZONTAL);
-
-            linearByAppInfo[i] = new LinearLayout(getActivity()); // LinearLayout 생성
-            // linear에 대한 속성
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-            params.setMargins((int) marginSize, (int) marginSize, (int) marginSize, (int) marginSize);
-            linearPanel[i].setLayoutParams(params);
-            //linearByAppInfo[i].setLayoutParams(params);
-            linearByAppInfo[i].setOrientation(LinearLayout.VERTICAL);
-
-            // 어플 아이콘 ImageView에 대한 속성
-            ImageView appImage = new ImageView(getActivity());
-            appImage.setImageDrawable(app_icon[i]);
-
-            // 어플이름 textView에 대한 속성
-            LinearLayout.LayoutParams appName_textParam = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-
-            appName_textParam.setMargins((int) marginSize, (int) marginSize, 0, 0);
-            appName[i] = new TextView(getActivity()); // TextView 생성
-            // appName[i].setLayoutParams(appName_textParam);
-            appName[i].setTypeface(null, Typeface.BOLD);
             try {
-                app_name = getActivity().getPackageManager().getApplicationLabel
+                app_name[i] = getActivity().getPackageManager().getApplicationLabel
                         (getActivity().getPackageManager().getApplicationInfo
                                 (apps.get(i), PackageManager.GET_UNINSTALLED_PACKAGES)) //apps.get(index)
                         .toString();
+
+                app_icon[i] = getActivity().getPackageManager().getApplicationIcon(apps.get(i));
+
+                long intstallTimeMillisec = getActivity().getPackageManager().getPackageInfo(apps.get(i), 0).firstInstallTime;  // 설치날짜 정보
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(intstallTimeMillisec);
+                int mYear = calendar.get(Calendar.YEAR);
+                int mMonth = calendar.get(Calendar.MONTH);
+                int mDay = calendar.get(Calendar.DAY_OF_MONTH);
+                if (mMonth == 0) mMonth = 1;
+                String installDate = "" + mYear + "/" + mMonth + "/" + mDay;
+
+                contacts.add(new AppInfo(apps.get(i), app_name[i], app_icon[i], installDate));
             } catch (PackageManager.NameNotFoundException e) {
+                Log.d("Package", "패키지에서 에러");
             }
-            appName[i].setText(app_name);
-            linearByAppInfo[i].addView(appName[i], appName_textParam); //LinearLayout에 TextView(앱 목록)추가
-            linearPanel[i].addView(appImage);
-            linearPanel[i].addView(linearByAppInfo[i]);
-            rootLinearPanel.addView(linearPanel[i]);// LinearLayout추가
-            rootLinearPanel.removeView(line);
-            rootLinearPanel.addView(line,lineParam);
         }
-        scroller.addView(rootLinearPanel);//ScrollView에 LinearLayout추가
-        return scroller;
+
+        return contacts;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
