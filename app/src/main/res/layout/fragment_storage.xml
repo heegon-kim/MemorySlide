@@ -35,6 +35,9 @@
                 android:layout_alignLeft="@id/storage_text_StorageSpace"
                 android:background="#40A940"
                 android:layout_marginRight="10dp"
+                android:max="100"
+                android:min="0"
+                android:progress="0"
                 ></ProgressBar>
 
             <TextView
