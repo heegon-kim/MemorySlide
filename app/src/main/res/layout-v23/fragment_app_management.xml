@@ -31,6 +31,18 @@
             android:layout_marginBottom="10dp"
             android:entries="@array/menu_list"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="설치된 어플: "
+            android:textSize="10sp" />
+        <TextView
+            android:id="@+id/appCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="10sp" />
+
     </LinearLayout>
 
 
@@ -39,7 +51,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/background_light"
-        android:foreground="?attr/selectableItemBackground"
         />
 
 </LinearLayout>

@@ -24,15 +24,13 @@
                 android:scaleType="centerInside"
 
                 android:layout_marginTop="15dp"
-                android:layout_marginBottom="15dp"
-                android:src="@drawable/battery_green">
+                android:layout_marginBottom="15dp">
             </ImageView>
             <TextView
                 android:id="@+id/percent_text"
                 android:layout_toRightOf="@id/battery_image"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:background="@drawable/add_edge"
 
                 android:gravity="center"
                 android:textSize="40sp">
@@ -46,13 +44,11 @@
                 android:layout_marginTop="15dp"
                 android:text="00h 00m"
                 android:textSize="20sp"
-                android:gravity="center"
-                android:background="@drawable/add_edge">
+                android:gravity="center">
             </TextView>
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/round_button"
                 android:layout_toRightOf="@id/rest_time"
                 android:layout_alignBottom="@id/rest_time"
                 android:layout_marginLeft="10dp"
@@ -79,7 +75,6 @@
                     android:text="상태"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:background="@drawable/add_edge"
                     />
 
                 <TextView
@@ -89,8 +84,7 @@
                     android:layout_weight="80"
                     android:text="status"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
             </TableRow>
 
             <TableRow
@@ -104,8 +98,7 @@
                     android:layout_weight="20"
                     android:text="온도"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -113,7 +106,6 @@
                     android:gravity="center"
                     android:layout_weight="80"
                     android:text="temperature"
-                    android:background="@drawable/add_edge"
                     android:textSize="15sp"
                     android:textStyle="bold" />
             </TableRow>
@@ -128,8 +120,7 @@
                     android:layout_weight="20"
                     android:text="전압"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -138,8 +129,7 @@
                     android:layout_weight="80"
                     android:text="voltage"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
             </TableRow>
             <TableRow
                 android:layout_weight="20"
@@ -152,8 +142,7 @@
                     android:layout_weight="20"
                     android:text="충전상태"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -162,8 +151,7 @@
                     android:layout_weight="80"
                     android:text="chargeStatus"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
             </TableRow>
             <TableRow
                 android:layout_weight="20"
@@ -176,8 +164,7 @@
                     android:layout_weight="20"
                     android:text="종합"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -186,8 +173,7 @@
                     android:layout_weight="80"
                     android:text="inf"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/add_edge"/>
+                    android:textStyle="bold"/>
             </TableRow>
         </TableLayout>
 
