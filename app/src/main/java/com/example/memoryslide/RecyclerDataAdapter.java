@@ -14,10 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 
 public class RecyclerDataAdapter extends RecyclerView.Adapter<ViewHolder> {
-    private ArrayList<AppInfo> arrayListOfAppInfo;
+    private ArrayList<AppInfo> arrayListOfAppInfo = null;
 
     public RecyclerDataAdapter(ArrayList<AppInfo> arrayListOfAppInfo) {
-        this.arrayListOfAppInfo = arrayListOfAppInfo;
+            this.arrayListOfAppInfo = arrayListOfAppInfo;
     }
 
     @NonNull
