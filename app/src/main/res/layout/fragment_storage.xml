@@ -20,7 +20,7 @@
                 android:id="@+id/storage_text_StorageSpace"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="저장공간"
+                android:text="@string/storage_title_Storage"
                 android:textStyle="bold"
                 android:textSize="15dp"
                 android:layout_margin="15dp"
@@ -35,6 +35,9 @@
                 android:layout_alignLeft="@id/storage_text_StorageSpace"
                 android:background="#40A940"
                 android:layout_marginRight="10dp"
+                android:max="100"
+                android:min="0"
+                android:progress="0"
                 ></ProgressBar>
 
             <TextView
@@ -42,7 +45,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10dp"
-                android:text="현재 용량"
+                android:text="@string/storage_currentStorage"
                 android:layout_below="@id/storage_progressbar_StorageSpace"
                 android:layout_alignLeft="@id/storage_progressbar_StorageSpace"
                 android:layout_marginTop="5dp"
@@ -53,7 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10dp"
-                android:text="/"
+                android:text="@string/storage_symbol_slash"
                 android:layout_toRightOf="@id/storage_text_CurrentStorage"
                 android:layout_alignBaseline="@id/storage_text_CurrentStorage"
                 ></TextView>
@@ -63,7 +66,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10dp"
-                android:text="전체 용량"
+                android:text="@string/storage_storageCapacity"
                 android:layout_toRightOf="@id/storage_text_slash"
                 android:layout_alignBaseline="@id/storage_text_slash"
                 ></TextView>
@@ -73,7 +76,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10dp"
-                android:text=" 사용중"
+                android:text="@string/storage_using"
                 android:layout_below="@id/storage_progressbar_StorageSpace"
                 android:layout_alignRight="@id/storage_progressbar_StorageSpace"
                 android:layout_marginTop="5dp"
@@ -85,7 +88,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10dp"
-                android:text="%"
+                android:text="@string/storage_symbol_percent"
                 android:layout_toLeftOf="@id/storage_text_using"
                 android:layout_alignBaseline="@+id/storage_text_using"
                 ></TextView>
@@ -95,7 +98,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10dp"
-                android:text="100"
+                android:text="*"
                 android:layout_toLeftOf="@id/storage_text_percent"
                 android:layout_alignBaseline="@+id/storage_text_using"
                 ></TextView>
@@ -121,7 +124,7 @@
                 android:id="@+id/storage_text_StorageShare"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="저장공간 점유율"
+                android:text="@string/storage_title_storageShare"
                 android:textStyle="bold"
                 android:textSize="15dp"
                 android:layout_marginTop="15dp"
@@ -132,7 +135,7 @@
                 android:id="@+id/storage_text_share_application"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="어플리케이션"
+                android:text="@string/storage_shareIndex_application"
                 android:textSize="10dp"
                 android:layout_below="@+id/storage_text_StorageShare"
                 android:layout_marginTop="5dp"
@@ -156,7 +159,7 @@
                 android:id="@+id/storage_text_share_gallery"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="사진"
+                android:text="@string/storage_shareIndex_picture"
                 android:textSize="10dp"
                 android:layout_below="@+id/storage_text_share_application"
                 android:layout_alignRight="@+id/storage_text_share_application"
@@ -180,7 +183,7 @@
                 android:id="@+id/storage_text_share_videos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="비디오"
+                android:text="@string/storage_shareIndex_video"
                 android:textSize="10dp"
                 android:layout_below="@+id/storage_text_share_gallery"
                 android:layout_alignRight="@+id/storage_text_share_application"
@@ -204,7 +207,7 @@
                 android:id="@+id/storage_text_share_music"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="음악"
+                android:text="@string/storage_shareIndex_music"
                 android:textSize="10dp"
                 android:layout_below="@+id/storage_text_share_videos"
                 android:layout_alignRight="@+id/storage_text_share_application"
@@ -228,7 +231,7 @@
                 android:id="@+id/storage_text_share_cache"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="캐시"
+                android:text="@string/storage_shareIndex_cache"
                 android:textSize="10dp"
                 android:layout_below="@+id/storage_text_share_music"
                 android:layout_alignRight="@+id/storage_text_share_application"
@@ -252,7 +255,7 @@
                 android:id="@+id/storage_text_share_extra"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="기타"
+                android:text="@string/storage_shareIndex_extra"
                 android:textSize="10dp"
                 android:layout_below="@+id/storage_text_share_cache"
                 android:layout_alignRight="@+id/storage_text_share_application"
@@ -276,7 +279,7 @@
                 android:id="@+id/storage_text_share_Comment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="코멘트"
+                android:text="@string/storage_comment_default"
                 android:textStyle="bold"
                 android:textSize="10dp"
                 android:layout_below="@+id/storage_text_share_extra"
@@ -298,7 +301,7 @@
                 android:id="@+id/storage_text_removeCache"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="캐시 파일 삭제"
+                android:text="@string/storage_title_cacheCleaner"
                 android:textStyle="bold"
                 android:textSize="15dp"
                 android:layout_toRightOf="@id/storage_button_cacheCleaner"
@@ -310,7 +313,7 @@
                 android:id="@+id/storage_text_targetObj"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="대상 : "
+                android:text="@string/storage_cacheCleanTarget"
                 android:textSize="10dp"
                 android:textStyle="bold"
                 android:layout_below="@id/storage_text_removeCache"
@@ -321,7 +324,7 @@
                 android:id="@+id/storage_text_sizeofCacheFiles"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="~ G"
+                android:text="* G"
                 android:textStyle="bold"
                 android:textSize="10dp"
                 android:layout_toRightOf="@id/storage_text_targetObj"
@@ -332,7 +335,7 @@
                 android:id="@+id/storage_text_explainCacheCleaner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="*불필요한 캐시파일을 삭제하여 공간을 확보합니다."
+                android:text="@string/storage_notice_cacheCleaner"
                 android:textStyle="bold"
                 android:textSize="10dp"
                 android:layout_below="@id/storage_button_cacheCleaner"
@@ -340,15 +343,5 @@
                 android:layout_marginTop="5dp"
                 android:layout_marginLeft="5dp"
                 ></TextView>
-
-
-
         </RelativeLayout>
-
-
-
-
-
-
-
 </LinearLayout>
