@@ -17,7 +17,7 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<ViewHolder> {
     private ArrayList<AppInfo> arrayListOfAppInfo = null;
 
     public RecyclerDataAdapter(ArrayList<AppInfo> arrayListOfAppInfo) {
-            this.arrayListOfAppInfo = arrayListOfAppInfo;
+        this.arrayListOfAppInfo = arrayListOfAppInfo;
     }
 
     @NonNull
@@ -62,6 +62,7 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<ViewHolder> {
 
     @Override
     public int getItemCount() {
+        if (arrayListOfAppInfo == null) return 0;
         return arrayListOfAppInfo.size();
     }
 }

@@ -33,9 +33,11 @@ public class AppManagement extends Fragment {
     private RecyclerView mRecyclerView;
     private RecyclerDataAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private ArrayList<AppInfo> mAppInfo;
+    private ArrayList<AppInfo> mAppInfo = null;
     private OnFragmentInteractionListener mListener;
     private TextView appCountText;
+    private ProgressDialog progressBar;
+
     public AppManagement() {
         // Required empty public constructor
     }
@@ -59,35 +61,54 @@ public class AppManagement extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_app_management, container, false);  // findViewByID 못쓰기때문에 요걸로 대체해야댐.
 
-
         mRecyclerView = (RecyclerView) v.findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager((getActivity()));
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.scrollToPosition(0);
-        mAppInfo = initialData();
         Spinner spinner = (Spinner) v.findViewById(R.id.sort);
-        appCountText = (TextView)v.findViewById(R.id.appCount);
+        appCountText = (TextView) v.findViewById(R.id.appCount);
+
+        progressBar = new ProgressDialog(getActivity());    // 앱 로딩시 진행중 다이얼로그
+        progressBar.setCancelable(true);
+        progressBar.setMessage("로딩중입니다...");
+        progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressBar.setProgress(0);
+        progressBar.setMax(100);
+        progressBar.show();
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {   // 선택된
-                mAppInfo = initDataset(position);
-                appCountText.setText(""+mAppInfo.size());
-                mAdapter = new RecyclerDataAdapter(mAppInfo);
-                mRecyclerView.setAdapter(mAdapter);
+            public void onItemSelected(AdapterView<?> parent, View view, final int position, long id) {   // 선택된 기준에 따른 처리
+
+                progressBar.show();
+                /*
+                Handler mHandler = new Handler();
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAppInfo = initDataset(position);   // 기준에 따라 정렬된 List 반환
+                        appCountText.setText("" + mAppInfo.size()); // 어플 개수 TextView
+                    }
+                });
+                 */
+                if (progressBar.isShowing()) {
+                    mAppInfo = initDataset(position);   // 기준에 따라 정렬된 List 반환
+                    appCountText.setText("" + mAppInfo.size()); // 어플 개수 TextView
+                }
+                mAppInfo = initDataset(position);   // 기준에 따라 정렬된 List 반환
+                mAdapter = new RecyclerDataAdapter(mAppInfo);   // Apdapter에 List정보 넘겨줌
+                mRecyclerView.setAdapter(mAdapter); // Adapter 부착
                 mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+
+                progressBar.dismiss();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {       }
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
         return v;
-    }
-
-    public ArrayList<AppInfo> initialData() {
-        ArrayList<AppInfo> contacts = new ArrayList<AppInfo>();
-        return contacts;
     }
 
     public ArrayList<AppInfo> initDataset(int sorting) {
@@ -146,13 +167,12 @@ public class AppManagement extends Fragment {
                         app_icon[j - 1] = app_icon[j];
                         app_icon[j] = tempApp_icon;
 
-                        tempIntstallTimeMillisec = intstallTimeMillisec[j-1];
-                        intstallTimeMillisec[j-1] =  intstallTimeMillisec[j];
+                        tempIntstallTimeMillisec = intstallTimeMillisec[j - 1];
+                        intstallTimeMillisec[j - 1] = intstallTimeMillisec[j];
                         intstallTimeMillisec[j] = tempIntstallTimeMillisec;
                     }
             }
-        }
-        else if(sorting == 3){
+        } else if (sorting == 3) {
             String tempApps;
             String tempApp_name;
             Drawable tempApp_icon;
@@ -172,8 +192,8 @@ public class AppManagement extends Fragment {
                         app_icon[j - 1] = app_icon[j];
                         app_icon[j] = tempApp_icon;
 
-                        tempIntstallTimeMillisec = intstallTimeMillisec[j-1];
-                        intstallTimeMillisec[j-1] =  intstallTimeMillisec[j];
+                        tempIntstallTimeMillisec = intstallTimeMillisec[j - 1];
+                        intstallTimeMillisec[j - 1] = intstallTimeMillisec[j];
                         intstallTimeMillisec[j] = tempIntstallTimeMillisec;
                     }
             }
