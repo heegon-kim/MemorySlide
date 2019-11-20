@@ -44,7 +44,7 @@ public class Storage extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_storage, container, false);
+        return inflater.inflate(R.layout.fragment_storage_renewal, container, false);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class Storage extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         //초기화
-        updateView();
+      //  updateView();
     }
 
     private void updateView()

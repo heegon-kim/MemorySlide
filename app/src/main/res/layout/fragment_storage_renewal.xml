@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Storage"
+    android:orientation="vertical"
+    android:weightSum="1">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.4"
+        android:background="#777788"
+        >
+
+        <ProgressBar
+            android:id="@+id/progressBar_Storage"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:layout_gravity="center_horizontal|bottom"
+            android:max="200"
+            android:progress="70"
+            android:progressDrawable="@drawable/circular"
+            android:rotation="180"></ProgressBar>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text ="%"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="90dp"
+            ></TextView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text ="*/*G"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="110dp"
+            ></TextView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15dp"
+            android:text ="데이터 쓰기/ 읽기속도"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="140dp"
+            android:layout_marginLeft="10dp"
+            ></TextView>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.15"
+        android:background="#456456"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15dp"
+            android:text ="Comment"
+            android:textStyle="bold"
+            android:layout_marginLeft="10dp"
+            ></TextView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.05"
+        android:background="#334466"
+        android:orientation="horizontal"
+        android:weightSum="1">
+
+        <ProgressBar
+            android:id="@+id/progressBar_StorageShareApp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="100"
+            android:progressTint="#66ec66"
+            android:layout_weight="0.2"
+            android:layout_marginTop="7dp">
+        </ProgressBar>
+
+        <ProgressBar
+            android:id="@+id/progressBar_StorageSharePic"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="100"
+            android:progressTint="#8878cd"
+            android:layout_weight="0.2"
+            android:layout_marginTop="7dp">
+        </ProgressBar>
+
+        <ProgressBar
+            android:id="@+id/progressBar_StorageShareVid"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="100"
+            android:layout_weight="0.2"
+            android:progressTint="#ff6a89"
+            android:layout_marginTop="7dp">
+        </ProgressBar>
+
+        <ProgressBar
+            android:id="@+id/progressBar_StorageShareMus"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="100"
+            android:layout_weight="0.2"
+            android:progressTint="#ffc314"
+            android:layout_marginTop="7dp">
+        </ProgressBar>
+
+        <ProgressBar
+            android:id="@+id/progressBar_StorageShareExt"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="100"
+            android:layout_weight="0.2"
+            android:progressTint="#f08c8c"
+            android:layout_marginTop="7dp">
+        </ProgressBar>
+    </LinearLayout>
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        android:background="@drawable/background_storageshare"
+        android:orientation="horizontal"
+        android:weightSum="1">
+        <TableRow>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="어플리케이션"
+                android:textSize = "10sp"
+                android:layout_weight="0.33"
+                android:layout_marginLeft="40dp"
+                android:layout_marginTop="5dp"
+                ></TextView>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="사진"
+                android:textSize = "10sp"
+                android:layout_weight="0.33"
+                android:layout_marginTop="5dp"
+                ></TextView>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="비디오"
+                android:textSize = "10sp"
+                android:layout_weight="0.33"
+                android:layout_marginTop="5dp"
+                ></TextView>
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="음악"
+                android:textSize = "10sp"
+                android:layout_weight="0.333333"
+                android:layout_marginLeft="40dp"
+                android:layout_marginTop="5dp"
+                ></TextView>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="기타"
+                android:textSize = "10sp"
+                android:layout_weight="0.67"
+                android:layout_marginTop="5dp"
+                ></TextView>
+        </TableRow>
+    </TableLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3"
+        android:background="#223344"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:text="CacheCleaner"
+            android:textStyle="bold"
+            android:layout_marginLeft="10dp"
+            ></TextView>
+    </LinearLayout>
+</LinearLayout>
