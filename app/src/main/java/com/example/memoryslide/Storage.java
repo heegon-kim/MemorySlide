@@ -1,6 +1,8 @@
 package com.example.memoryslide;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -10,13 +12,13 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Environment;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Message;
 import android.os.StatFs;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -40,6 +42,39 @@ public class Storage extends Fragment {
     TextView text_StoragePerformance;
     View v;
 
+    public class BtnOnClickListener implements Button.OnClickListener
+    {
+        @Override
+        public void onClick(View v)
+        {
+            if(v.getId() == R.id.button_CacheCleaner)
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle(R.string.storage_title_cacheCleaner);
+                builder.setMessage(R.string.storage_notice_cacheCleanCheck);
+                builder.setIcon(R.drawable.icon_cachecleaner);
+
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        //실행 X
+                    }
+                });
+
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        //캐시파일 삭제로직
+                    }
+                });
+
+                builder.show();
+            }
+        }
+    }
+
     public Storage()
     {
         // Required empty public constructor
@@ -57,19 +92,30 @@ public class Storage extends Fragment {
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        th.start();
+        try
+        {
+            th.start();
+        }
+        catch(IllegalThreadStateException e)
+        {
+
+        }
     }
+
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_storage_renewal, container, false);
+        return inflater.inflate(R.layout.fragment_storage, container, false);
     }
 
     @Override
@@ -77,6 +123,10 @@ public class Storage extends Fragment {
         super.onActivityCreated(savedInstanceState);
         v = getView();
         text_StoragePerformance = v.findViewById(R.id.text_dataReadWriteSpeed);
+
+        Button button_cachecleaner = (Button)v.findViewById(R.id.button_CacheCleaner);
+        BtnOnClickListener onClickListener = new BtnOnClickListener();
+        button_cachecleaner.setOnClickListener(onClickListener);
     }
 
     public class updateViewThread extends Thread
@@ -116,6 +166,7 @@ public class Storage extends Fragment {
         ProgressBar progressbar_Storage = v.findViewById(R.id.progressBar_Storage);
         TextView text_StorageSize = v.findViewById(R.id.text_StorageSize);
         TextView text_StoragePercentage = v.findViewById(R.id.text_StoragePercentage);
+        TextView text_Comment = v.findViewById(R.id.text_storageComment);
 
         text_StorageSize.setText(getFileSize(size_current) +" / " +getFileSize(size_total));
         text_StoragePercentage.setText(Long.toString(percentage_Current) +" %");
@@ -177,6 +228,19 @@ public class Storage extends Fragment {
         parameter = (LinearLayout.LayoutParams)progressBar_shareExt.getLayoutParams();
         parameter.weight = sizeofExt;
         progressBar_shareApp.setLayoutParams(parameter);
+
+        if(percentage_Current > 80)
+        {
+            text_Comment.setText(R.string.storage_comment_lack);
+        }
+        else if(percentage_Current > 90)
+        {
+            text_Comment.setText(R.string.storage_comment_almostFull);
+        }
+        else
+        {
+            text_Comment.setText(R.string.storage_comment_default);
+        }
     }
 
     private long readTest(File testPath, int repeat)
@@ -196,7 +260,8 @@ public class Storage extends Fragment {
             for(int i=0; i<repeat;i++)
             {
                 buf = new BufferedReader(new FileReader(path + "/testfile.txt"));
-                while ((line = buf.readLine()) != null) {
+                while ((line = buf.readLine()) != null)
+                {
                     stb.append(line + "\n");
                 }
                 average += path.length()*1000000;
@@ -210,7 +275,6 @@ public class Storage extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return average;
     }
 
@@ -344,6 +408,7 @@ public class Storage extends Fragment {
         }
     }
 
+
     @Override
     public void onAttach(Context context)
     {
@@ -370,4 +435,7 @@ public class Storage extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
+
 }
