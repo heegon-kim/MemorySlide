@@ -93,7 +93,7 @@ public class AppManagement extends Fragment {
                  */
                 if (progressBar.isShowing()) {
                     mAppInfo = initDataset(position);   // 기준에 따라 정렬된 List 반환
-                    appCountText.setText("" + mAppInfo.size()); // 어플 개수 TextView
+                   // appCountText.setText("" + mAppInfo.size()); // 어플 개수 TextView
                 }
                 mAppInfo = initDataset(position);   // 기준에 따라 정렬된 List 반환
                 mAdapter = new RecyclerDataAdapter(mAppInfo);   // Apdapter에 List정보 넘겨줌

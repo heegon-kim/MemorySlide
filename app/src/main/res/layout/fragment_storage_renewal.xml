@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.4"
-        android:background="#777788"
+        android:layout_marginTop="10dp"
         >
 
         <ProgressBar
@@ -25,7 +25,19 @@
             android:progressDrawable="@drawable/circular"
             android:rotation="180"></ProgressBar>
 
+        <ProgressBar
+            android:id="@+id/progressBar_StorageBackground"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:layout_gravity="center_horizontal|bottom"
+            android:max="200"
+            android:progress="100"
+            android:progressDrawable="@drawable/circular_background"
+            android:rotation="180"></ProgressBar>
+
         <TextView
+            android:id="@+id/text_StoragePercentage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20dp"
@@ -36,6 +48,7 @@
             ></TextView>
 
         <TextView
+            android:id="@+id/text_StorageSize"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20dp"
@@ -46,6 +59,7 @@
             ></TextView>
 
         <TextView
+            android:id="@+id/text_dataReadWriteSpeed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="15dp"
@@ -60,10 +74,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.15"
-        android:background="#456456"
-        >
+        android:layout_weight="0.15">
         <TextView
+            android:id="@+id/text_storageComment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="15dp"
@@ -74,10 +87,10 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/layout_progressbar"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.05"
-        android:background="#334466"
         android:orientation="horizontal"
         android:weightSum="1">
 
@@ -153,8 +166,9 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="어플리케이션"
+                android:text="@string/storage_shareIndex_application"
                 android:textSize = "10sp"
+                android:textStyle="bold"
                 android:layout_weight="0.33"
                 android:layout_marginLeft="40dp"
                 android:layout_marginTop="5dp"
@@ -162,16 +176,18 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="사진"
+                android:text="@string/storage_shareIndex_picture"
                 android:textSize = "10sp"
+                android:textStyle="bold"
                 android:layout_weight="0.33"
                 android:layout_marginTop="5dp"
                 ></TextView>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="비디오"
+                android:text="@string/storage_shareIndex_video"
                 android:textSize = "10sp"
+                android:textStyle="bold"
                 android:layout_weight="0.33"
                 android:layout_marginTop="5dp"
                 ></TextView>
@@ -180,8 +196,9 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="음악"
+                android:text="@string/storage_shareIndex_music"
                 android:textSize = "10sp"
+                android:textStyle="bold"
                 android:layout_weight="0.333333"
                 android:layout_marginLeft="40dp"
                 android:layout_marginTop="5dp"
@@ -189,27 +206,37 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="기타"
+                android:text="@string/storage_shareIndex_extra"
                 android:textSize = "10sp"
+                android:textStyle="bold"
                 android:layout_weight="0.67"
                 android:layout_marginTop="5dp"
                 ></TextView>
         </TableRow>
     </TableLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.3"
-        android:background="#223344"
         >
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:text="CacheCleaner"
+            android:text="@string/storage_title_cacheCleaner"
             android:textStyle="bold"
+            android:textSize="15dp"
+            android:layout_marginTop="10dp"
             android:layout_marginLeft="10dp"
             ></TextView>
-    </LinearLayout>
+
+        <Button
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/icon_cachecleaner"
+            android:layout_gravity="center|right"
+            android:layout_marginRight="20dp"
+            ></Button>
+    </FrameLayout>
 </LinearLayout>
