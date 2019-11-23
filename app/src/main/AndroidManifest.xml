@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.memoryslide">
+    <!-- UsageStatsManager 사용을 위한 퍼미션 권한 획득-->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
+    <!-- 어플 삭제 화면으로 이동 -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
