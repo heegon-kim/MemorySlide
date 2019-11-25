@@ -53,7 +53,9 @@ public class AppManagement extends Fragment {
     private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<AppInfo> mAppInfo = null;
     private OnFragmentInteractionListener mListener;
-    private TextView appCountText;
+    private TextView appCountText;  // 설치된 어플 개수
+    public int noTimeCount = 0;   // 10일이내 사용기록이 없는 어플 개수
+    public TextView noUsedApp;
     private ProgressDialog progressBar;
     private DateFormat mDateFormat = new SimpleDateFormat();
     private int mPosition;
@@ -92,7 +94,7 @@ public class AppManagement extends Fragment {
         mRecyclerView.setAdapter(mAdapter);
         Spinner spinner = (Spinner) v.findViewById(R.id.sort);
         appCountText = (TextView) v.findViewById(R.id.appCount);
-
+        noUsedApp = (TextView) v.findViewById(R.id.noUsedAppCount);
         progressBar = new ProgressDialog(getActivity());    // 앱 로딩시 진행중 다이얼로그
         progressBar.setCancelable(true);
         progressBar.setMessage("로딩중입니다...");
@@ -105,8 +107,12 @@ public class AppManagement extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, final int position, long id) {   // 선택된 기준에 따른 처리
                 progressBar.show();
                 mPosition = position;
+                noTimeCount = 0;
                 StatsUsageInterval statsUsageInterval = null;
-                statsUsageInterval = StatsUsageInterval.getValue("Daily");
+                if (position == 0 || position == 1)
+                    statsUsageInterval = StatsUsageInterval.getValue("Weekly");
+                else
+                    statsUsageInterval = StatsUsageInterval.getValue("Daily");
                 if (statsUsageInterval != null) {
                     List<UsageStats> usageStatsList =
                             getUsageStatistics(statsUsageInterval.mInterval);
@@ -114,11 +120,11 @@ public class AppManagement extends Fragment {
                         Collections.sort(usageStatsList, new LastTimeLaunchedComparatorAsc());
                     else if (position == 1)  // 최근실행 내림차순
                         Collections.sort(usageStatsList, new LastTimeLaunchedComparatorDesc());
-                    else if (position == 2)  // 앱이름 오름차순
-                        Collections.sort(usageStatsList, new executeComparatorAsc());
-                    else if (position == 3) { // 앱이름 내림차순
+                    else if (position == 2)  // 실행시간 오름차순
                         Collections.sort(usageStatsList, new executeComparatorDesc());
-                    }
+                    // else if (position == 3) // 실행시간 내림차순
+                    //     Collections.sort(usageStatsList, new executeComparatorDesc());
+
                     updateAppsList(usageStatsList);
                 }
                 progressBar.dismiss();
@@ -144,18 +150,20 @@ public class AppManagement extends Fragment {
         for (int i = 0; i < usageStatsList.size(); i++) {
             AppInfo customUsageStats = new AppInfo();
             customUsageStats.usageStats = usageStatsList.get(i);
-            try{
-            if (mPosition == 0 || mPosition == 1) {
-                if (i > 0 && i + 1 < usageStatsList.size() && customUsageStatsList.get(addingCount - 1).usageStats.getPackageName().equals(usageStatsList.get(i).getPackageName())
-                        && customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() < usageStatsList.get(i).getLastTimeUsed()) { // add한것보다 크면 add한거 remove하고 더 큰거 add
-                    customUsageStatsList.remove(addingCount--);
-                } else if (i > 0 && i + 1 < usageStatsList.size() && customUsageStatsList.get(addingCount - 1).usageStats.getPackageName().equals(usageStatsList.get(i).getPackageName())
-                        && customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() >= usageStatsList.get(i).getLastTimeUsed()) { //add한것보다 작으면 걍 continue
-                    continue;
+            try {
+                if (mPosition == 0 || mPosition == 1) {
+                    if (i > 0 && i + 1 < usageStatsList.size() && customUsageStatsList.get(addingCount - 1).usageStats.getPackageName().equals(usageStatsList.get(i).getPackageName())
+                            && customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() < usageStatsList.get(i).getLastTimeUsed()) { // add한것보다 크면 add한거 remove하고 더 큰거 add
+                        if (customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() <= 0)
+                            noTimeCount--;
+                        customUsageStatsList.remove(addingCount--);
+                    } else if (i > 0 && i + 1 < usageStatsList.size() && customUsageStatsList.get(addingCount - 1).usageStats.getPackageName().equals(usageStatsList.get(i).getPackageName())
+                            && customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() >= usageStatsList.get(i).getLastTimeUsed()) { //add한것보다 작으면 걍 continue
+                        continue;
+                    }
                 }
-            }
-            }catch (Exception e){
-                Log.d("count",""+i);
+            } catch (Exception e) {
+                Log.d("count", "" + i);
             }
             for (int j = 0; j < pack.size(); j++) {
                 if (pack.get(j).activityInfo.packageName.equals(customUsageStats.usageStats.getPackageName())) {       // 실행 가능한 어플만 골라냄
@@ -178,22 +186,26 @@ public class AppManagement extends Fragment {
                         String executeTime = "" + customUsageStats.usageStats.getTotalTimeInForeground() / 60000 + "분";
                         customUsageStats.executeTime = executeTime;
 
+                        if (customUsageStats.usageStats.getLastTimeUsed() <= 0)
+                            noTimeCount++;
+
                     } catch (PackageManager.NameNotFoundException e) {
                         Log.w(TAG, String.format("App Icon is not found for %s",
                                 customUsageStats.usageStats.getPackageName()));
                         customUsageStats.appIcon = getActivity().getDrawable(R.drawable.ic_default_app_launcher);
                     }
-                    customUsageStatsList.add(addingCount++,customUsageStats);
+                    customUsageStatsList.add(addingCount++, customUsageStats);
                     break;
                 }
             }
         }
         if (mPosition == 0) {
             Collections.sort(customUsageStatsList, new myComparatorDesc());
-        }else if(mPosition == 1){
+            noUsedApp.setText(" " + noTimeCount + " 개");
+            appCountText.setText(" " + --addingCount + " 개"); // 어플 개수 TextView
+        } else if (mPosition == 1) {
             Collections.sort(customUsageStatsList, new myComparatorAsc());
         }
-        appCountText.setText("" + pack.size()); // 어플 개수 TextView
         mAdapter.setCustomUsageStatsList(customUsageStatsList);
         mAdapter.notifyDataSetChanged();
         mRecyclerView.setAdapter(mAdapter); // Adapter 부착
@@ -260,14 +272,15 @@ public class AppManagement extends Fragment {
         @Override
         public int compare(AppInfo left, AppInfo right) {
 
-            return Long.compare(left.usageStats.getLastTimeUsed(),right.usageStats.getLastTimeUsed());
+            return Long.compare(left.usageStats.getLastTimeUsed(), right.usageStats.getLastTimeUsed());
         }
     }
+
     private static class myComparatorAsc implements Comparator<AppInfo> {     // 오름차순 정렬
         @Override
         public int compare(AppInfo left, AppInfo right) {
 
-            return Long.compare(right.usageStats.getLastTimeUsed(),left.usageStats.getLastTimeUsed());
+            return Long.compare(right.usageStats.getLastTimeUsed(), left.usageStats.getLastTimeUsed());
         }
     }
 

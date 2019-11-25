@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="spinner_list">
-        <item>실행 기록(↗)</item>
-        <item>실행 기록(↘)</item>
-        <item>실행 시간(↗)</item>
+        <item>오랜전에 실행</item>
+        <item>최근에 실행</item>
         <item>실행 시간(↘)</item>
     </string-array>
 

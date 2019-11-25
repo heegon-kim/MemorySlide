@@ -70,13 +70,13 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnCreateContextMenuListener {
         private AppInfo appInfo;
         private int position;
-        public RelativeLayout parentRelativeLayout;
-        public TextView appName;
-        public TextView mLastTimeUsed;
-        public ImageView appIcon;
-        public TextView install;
-        public TextView executeTime;
-        public String appPackageName;
+        public RelativeLayout parentRelativeLayout; // 부모 relativeLayout
+        public TextView appName;    // 어플 이름
+        public TextView mLastTimeUsed;  // 가장 최근에 사용한 시간
+        public ImageView appIcon;   // 앱 아이콘
+        public TextView install;    // 설치 날짜 시간
+        public TextView executeTime;    // 해당일 실행하고 있던 누적시간
+        public String appPackageName;   // 어플 패키지 이름
 
         //com.example.memoryslide.ViewHolder 생성
         public ViewHolder(View itemView) {
@@ -89,7 +89,6 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
             appIcon = (ImageView) itemView.findViewById(R.id.appIcon);
             install = (TextView) itemView.findViewById(R.id.txtInstall);
             executeTime = (TextView) itemView.findViewById(R.id.executeTime);
-
             recordView = itemView;
         }
 
@@ -103,11 +102,21 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
 
             appName.setText(appInfo.getAppName());
 
+            long nowTime = System.currentTimeMillis();
             long lastTimeUsed = mCustomUsageStatsList.get(position).usageStats.getLastTimeUsed();
-            if (lastTimeUsed <= 0) // 실행기록이 없을 때의 lastTimeUsed의 값
-                getLastTimeUsed().setText("이번 주 실행기록이 없습니다!");
-            else
+            long gap = nowTime - lastTimeUsed;
+            long days = gap/(60*60*24*1000);
+            if (lastTimeUsed <= 0) { // 실행기록이 없을 때의 lastTimeUsed의 값
+                getLastTimeUsed().setText("한 달 이내의 실행기록이 없습니다!");
+                getLastTimeUsed().setTextColor(0xFFDC143C);
+            }else if(days<=30 && days>14){
+                getLastTimeUsed().setText("2주 이내의 실행기록이 없습니다!");
+                getLastTimeUsed().setTextColor(0xFFFF6347);
+            }
+            else {
                 getLastTimeUsed().setText("실행 기록: " + mDateFormat.format(new Date(lastTimeUsed)));
+                getLastTimeUsed().setTextColor(0x5C000000);
+            }
             appIcon.setImageDrawable(appInfo.getAppIcon());
 
             TextView installDate = install;

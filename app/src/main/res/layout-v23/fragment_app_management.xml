@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
+            android:layout_marginStart="18dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="5dp"
             android:layout_marginBottom="10dp"
@@ -27,26 +27,52 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
-            android:layout_marginEnd="5dp"
             android:layout_marginBottom="10dp"
-            android:entries="@array/spinner_list"/>
+            android:entries="@array/spinner_list" />
 
-        <TextView
+        <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/appmanagement_intalled_app"
-            android:textSize="10sp"
-            tools:ignore="SmallSp" />
-        <TextView
-            android:id="@+id/appCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/appmanagement_zero"
-            android:textSize="10sp"
-            tools:ignore="SmallSp" />
+            android:layout_height="wrap_content">
 
+            <TextView
+                android:id="@+id/appmanagement_intalled_app"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/appmanagement_intalled_app"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+
+            <TextView
+                android:id="@+id/appCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/appmanagement_intalled_app"
+                android:text="@string/appmanagement_zero"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+
+            <TextView
+                android:id="@+id/appmanagement_noUsed_app"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/appmanagement_intalled_app"
+                android:layout_marginTop="3dp"
+                android:text="@string/appmanagement_noUsed_app"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+
+            <TextView
+                android:id="@+id/noUsedAppCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="3dp"
+                android:layout_marginTop="4dp"
+                android:layout_toRightOf="@id/appmanagement_noUsed_app"
+                android:layout_below="@id/appmanagement_intalled_app"
+                android:text="@string/appmanagement_zero"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+        </RelativeLayout>
     </LinearLayout>
 
 
@@ -54,7 +80,6 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/background_light"
-        />
+        android:background="@android:color/background_light" />
 
 </LinearLayout>
