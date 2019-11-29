@@ -1,23 +1,14 @@
 package com.example.memoryslide;
 
+import android.app.usage.UsageStats;
 import android.graphics.drawable.Drawable;
 
 public class AppInfo {
-    private String appPackageName;
-    private String appName;
-    private Drawable appIcon;
-    private String installDate;
-
-    public AppInfo(String packageName, String appName, Drawable appIcon,String installDate) {
-        this.appPackageName = packageName;
-        this.appName = appName;
-        this.appIcon = appIcon;
-        this.installDate = installDate;
-    }
-
-    public String getAppPackageName() {
-        return this.appPackageName;
-    }
+    public String appName;
+    public Drawable appIcon;
+    public String installDate;
+    public UsageStats usageStats;
+    public String executeTime;
 
     public String getAppName() {
         return this.appName;
@@ -29,5 +20,9 @@ public class AppInfo {
 
     public String getInstallDate() {
         return this.installDate;
+    }
+
+    public String getExecuteTime() {
+        return this.executeTime;
     }
 }

@@ -16,4 +16,15 @@
     <string name="storage_title_cacheCleaner">Cache Cleaner</string>
 
     <string name="storage_notice_cacheCleanCheck">캐시파일을 삭제하시겠습니까?</string>
+    <string name="storage_notice_cacheCleanCheck_0">캐시파일을 삭제하시겠습니까?</string>
+    <string name="storage_notice_cacheCleanCheck_1">*원하지 않는 파일이 삭제될 수 있습니다.</string>
+    <string name="appmanagement_informSubject"><![CDATA[< 실행빈도 >]]></string>
+    <string name="appmanagement_intalled_app">설치된 어플:</string>
+    <string name="appmanagement_noUsed_app">2주 이내 실행 안된 어플:</string>
+    <string name="appmanagement_zero">0</string>
+    <string name="appmanagement_sorting_by">정렬기준</string>
+    <string name="appmanagement_detail_dayly">일간:</string>
+    <string name="appmanagement_detail_weekly">주간:</string>
+    <string name="appmanagement_detail_monthly">월간:</string>
+    <string name="appmanagement_detail_yearly">연간:</string>
 </resources>

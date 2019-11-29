@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
@@ -12,8 +14,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginRight="20dp" />
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp" />
 
     <TextView
         android:id="@+id/txtName"
@@ -22,11 +24,12 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:layout_toRightOf="@id/appIcon"
+        android:text="앱이름"
         android:textColor="#000000"
         android:textSize="15sp" />
 
     <TextView
-        android:id="@+id/txtPackage"
+        android:id="@+id/textview_last_time_used"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtName"
@@ -40,17 +43,29 @@
         android:id="@+id/txtInstall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginEnd="20dp"
         android:layout_alignParentEnd="true"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="5dp"
         android:textColor="#5C000000"
         android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/executeTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtInstall"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="20dp"
+        android:textColor="#5C000000"
+        android:textSize="10sp" />
+
 
     <View
         android:id="@+id/line"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#1A000000"
-        android:layout_alignParentBottom="true"/>
+        android:layout_alignParentBottom="true"
+        android:background="#1A000000" />
 </RelativeLayout>
