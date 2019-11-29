@@ -14,10 +14,9 @@
     <string name="storage_comment_lack">저장공간이 부족합니다.</string>
     <string name="storage_comment_almostFull">저장공간이 매우 부족합니다. \n불필요한 캐시파일 및 사용하지 않는 어플리케이션을 제거하세요.</string>
     <string name="storage_title_cacheCleaner">Cache Cleaner</string>
-
     <string name="storage_notice_cacheCleanCheck">캐시파일을 삭제하시겠습니까?</string>
-    <string name="storage_notice_cacheCleanCheck_0">캐시파일을 삭제하시겠습니까?</string>
-    <string name="storage_notice_cacheCleanCheck_1">*원하지 않는 파일이 삭제될 수 있습니다.</string>
+
+    <string name="explanation_access_to_appusage_is_not_enabled">*해당부분 커밋이 안되서 임시 텍스트*</string>
     <string name="appmanagement_informSubject"><![CDATA[< 실행빈도 >]]></string>
     <string name="appmanagement_intalled_app">설치된 어플:</string>
     <string name="appmanagement_noUsed_app">2주 이내 실행 안된 어플:</string>
