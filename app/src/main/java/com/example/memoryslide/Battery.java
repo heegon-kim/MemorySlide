@@ -151,7 +151,7 @@ public class Battery extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                Log.d("mymy", "onReceive()");
+                //Log.d("mymy", "onReceive()");
 
                 if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
                     BtInfo.health = intent.getIntExtra("health", BatteryManager.BATTERY_HEALTH_UNKNOWN);
@@ -161,7 +161,7 @@ public class Battery extends Fragment {
                     BtInfo.chargeStatus = intent.getIntExtra("plugged", 0);
                     BtInfo.remain = intent.getIntExtra("level", 0) * 100
                             /intent.getIntExtra("scale", 100);
-                    Log.d("mymy", "onReceive() after "+BtInfo.health);
+                  //  Log.d("mymy", "onReceive() after "+BtInfo.health);
                 }
             }
         };

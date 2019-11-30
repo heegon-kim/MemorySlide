@@ -3,6 +3,9 @@ package com.example.memoryslide;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.IPackageStatsObserver;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -10,9 +13,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.RemoteException;
 import android.os.StatFs;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,58 +35,35 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import android.content.pm.PackageStats;
 
 public class Storage extends Fragment {
     private OnFragmentInteractionListener mListener;
-    long start_t,end_t;
     updateViewThread th = new updateViewThread();
     performanceHandler han = new performanceHandler();
-    TextView text_StoragePerformance;
     View v;
+    TextView text_StoragePerformance;
+    ProgressBar progressbar_Storage;
+    TextView text_StorageSize;
+    TextView text_StoragePercentage;
+    TextView text_Comment;
+    TextView text_totalCacheSize;
+    TextView text_totalCacheShare;
+    TextView text_cacheComment;
+    public static final int FETCH_PACKAGE_SIZE_COMPLETED = 100;
 
-    public class BtnOnClickListener implements Button.OnClickListener
-    {
-        @Override
-        public void onClick(View v)
-        {
-            if(v.getId() == R.id.button_CacheCleaner)
-            {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle(R.string.storage_title_cacheCleaner);
-                builder.setMessage(R.string.storage_notice_cacheCleanCheck);
-                builder.setIcon(R.drawable.icon_cachecleaner);
-
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i)
-                    {
-                        //실행 X
-                    }
-                });
-
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i)
-                    {
-                        //캐시파일 삭제로직
-                    }
-                });
-
-                builder.show();
-            }
-        }
-    }
-
-    public Storage()
-    {
+    //---------------------------------------------------------------LIFE TIME-----------------------------------------------------------------------//
+    public Storage() {
         // Required empty public constructor
     }
 
-    public static Storage newInstance()
-    {
+    public static Storage newInstance() {
         Storage fragment = new Storage();
         Bundle args = new Bundle();
         fragment.setArguments(args);
@@ -89,31 +71,17 @@ public class Storage extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
-        try
-        {
+        try {
             th.start();
-        }
-        catch(IllegalThreadStateException e)
-        {
-
+        } catch (IllegalThreadStateException e) {
+            //스레드가 종료되지 않은 상태
         }
     }
 
-
-
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
-    {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_storage, container, false);
     }
@@ -124,15 +92,60 @@ public class Storage extends Fragment {
         v = getView();
         text_StoragePerformance = v.findViewById(R.id.text_dataReadWriteSpeed);
 
-        Button button_cachecleaner = (Button)v.findViewById(R.id.button_CacheCleaner);
+        Button button_cachecleaner = (Button) v.findViewById(R.id.button_CacheCleaner);
         BtnOnClickListener onClickListener = new BtnOnClickListener();
         button_cachecleaner.setOnClickListener(onClickListener);
+
+        progressbar_Storage = v.findViewById(R.id.progressBar_Storage);
+        text_StorageSize = v.findViewById(R.id.text_StorageSize);
+        text_StoragePercentage = v.findViewById(R.id.text_StoragePercentage);
+        text_Comment = v.findViewById(R.id.text_storageComment);
+        text_totalCacheSize = v.findViewById(R.id.TotalCacheSize);
+        text_totalCacheShare = v.findViewById(R.id.TotalCacheShare);
+        text_cacheComment = v.findViewById(R.id.cacheComment);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                packageSize = 0;
+                getpackageSize();
+            }}).start();
     }
 
-    public class updateViewThread extends Thread
-    {
-        public void run()
-        {
+    @Override
+    public void onPause() {
+        super.onPause();
+        th.interrupt();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnFragmentInteractionListener) {
+            mListener = (OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+    //---------------------------------------------------------------LIFE TIME-----------------------------------------------------------------------//
+
+
+
+    //---------------------------------------------------------------------뷰------------------------------------------------------------------------//
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onFragmentInteraction(Uri uri);
+    }
+
+    public class updateViewThread extends Thread {
+        public void run() {
             while (true) {
                 Message msg = han.obtainMessage();
                 han.sendMessage(msg);
@@ -145,53 +158,31 @@ public class Storage extends Fragment {
         }
     }
 
-    public class performanceHandler extends Handler
-    {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            super.handleMessage(msg);
-            text_StoragePerformance.setText("쓰기 속도 : " + getFileSize(writeTest(Environment.getExternalStorageDirectory(), 100)) + "/ sec\n"
-                    + "읽기 속도 : " + getFileSize(readTest(Environment.getExternalStorageDirectory(), 100)) + "/ sec");
-            updateView();
-        }
-    }
-
     private void updateView()
     {//뷰를 데이터에 맞게 업데이트
-        long size_total = checkInternMemorySize()+checkExternMemorySize();
-        long size_current = size_total - checkInternMemoryAvail()-checkExternMemoryAvail();
-        long percentage_Current = (long)((float)size_current/(float)size_total*100);
+        long size_total = StorageTools.getExternalStorageMemorySize(0) + StorageTools.getInternStorageMemorySize(0);
+        long size_current = StorageTools.getExternalStorageMemorySize(2) + StorageTools.getInternStorageMemorySize(2);
+        long percentage_Current = (long) ((float) size_current / (float) size_total * 100);
 
-
-        ProgressBar progressbar_Storage = v.findViewById(R.id.progressBar_Storage);
-        TextView text_StorageSize = v.findViewById(R.id.text_StorageSize);
-        TextView text_StoragePercentage = v.findViewById(R.id.text_StoragePercentage);
-        TextView text_Comment = v.findViewById(R.id.text_storageComment);
-
-        text_StorageSize.setText(getFileSize(size_current) +" / " +getFileSize(size_total));
-        text_StoragePercentage.setText(Long.toString(percentage_Current) +" %");
-
-        progressbar_Storage.setProgress((int)percentage_Current);
-
-        float sharesum=0;
-        long sizeofApp = checkInternMemorySize()-checkInternMemoryAvail();
+        float sharesum = 0;
+        long sizeofApp = StorageTools.getInternStorageMemorySize(1);
         float sizeofPic, sizeofMov, sizeofMus, sizeofExt;
 
 
         File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        sharesum += sizeofFolder_extern(directory);
-        sizeofPic = sizeofFolder_extern(directory);
+        sharesum += StorageTools.getExternalStorageMemorySize(directory, 2);
+        sizeofPic = StorageTools.getExternalStorageMemorySize(directory, 2);
 
         directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES);
-        sharesum += sizeofFolder_extern(directory);
-        sizeofMov = sizeofFolder_extern(directory);
+        sharesum += StorageTools.getExternalStorageMemorySize(directory, 2);
+        sizeofMov = StorageTools.getExternalStorageMemorySize(directory, 2);
 
         directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
-        sharesum += sizeofFolder_extern(directory);
-        sizeofMus = sizeofFolder_extern(directory);
+        sharesum += StorageTools.getExternalStorageMemorySize(directory, 2);
+        sizeofMus = StorageTools.getExternalStorageMemorySize(directory, 2);
 
-        sizeofExt = checkExternMemorySize()-sharesum;
-        sharesum += checkExternMemorySize()-sharesum;
+        sizeofExt = StorageTools.getExternalStorageMemorySize(directory, 0) - sharesum;
+        sharesum += StorageTools.getExternalStorageMemorySize(directory, 0) - sharesum;
 
         sharesum += sizeofApp;
 
@@ -209,233 +200,155 @@ public class Storage extends Fragment {
         ProgressBar progressBar_shareMus = v.findViewById(R.id.progressBar_StorageShareMus);
         ProgressBar progressBar_shareExt = v.findViewById(R.id.progressBar_StorageShareExt);
 
-        parameter = (LinearLayout.LayoutParams)progressBar_shareApp.getLayoutParams();
+        parameter = (LinearLayout.LayoutParams) progressBar_shareApp.getLayoutParams();
         parameter.weight = sizeofApp;
         progressBar_shareApp.setLayoutParams(parameter);
 
-        parameter = (LinearLayout.LayoutParams)progressBar_sharePic.getLayoutParams();
+        parameter = (LinearLayout.LayoutParams) progressBar_sharePic.getLayoutParams();
         parameter.weight = sizeofPic;
         progressBar_shareApp.setLayoutParams(parameter);
 
-        parameter = (LinearLayout.LayoutParams)progressBar_shareMov.getLayoutParams();
+        parameter = (LinearLayout.LayoutParams) progressBar_shareMov.getLayoutParams();
         parameter.weight = sizeofMov;
         progressBar_shareApp.setLayoutParams(parameter);
 
-        parameter = (LinearLayout.LayoutParams)progressBar_shareMus.getLayoutParams();
+        parameter = (LinearLayout.LayoutParams) progressBar_shareMus.getLayoutParams();
         parameter.weight = sizeofMus;
         progressBar_shareApp.setLayoutParams(parameter);
 
-        parameter = (LinearLayout.LayoutParams)progressBar_shareExt.getLayoutParams();
+        parameter = (LinearLayout.LayoutParams) progressBar_shareExt.getLayoutParams();
         parameter.weight = sizeofExt;
         progressBar_shareApp.setLayoutParams(parameter);
 
-        if(percentage_Current > 80)
-        {
+        text_StorageSize.setText(StorageTools.getFileSize(size_current) + " / " + StorageTools.getFileSize(size_total));
+        text_StoragePercentage.setText(Long.toString(percentage_Current) + " %");
+        progressbar_Storage.setProgress((int) percentage_Current);
+
+        if (percentage_Current > 80) {
             text_Comment.setText(R.string.storage_comment_lack);
-        }
-        else if(percentage_Current > 90)
-        {
+            text_Comment.setTextColor(Color.parseColor("#FF0000"));
+        } else if (percentage_Current > 90) {
             text_Comment.setText(R.string.storage_comment_almostFull);
-        }
-        else
-        {
+            text_Comment.setTextColor(Color.parseColor("#FF4500"));
+        } else {
             text_Comment.setText(R.string.storage_comment_default);
+            text_Comment.setTextColor(Color.parseColor("#32CD32"));
         }
     }
 
-    private long readTest(File testPath, int repeat)
-    {
-        BufferedReader buf=null;
-        String line = null;
-        StringBuffer stb = new StringBuffer();
-        long average=0;
-        File path = new File(testPath.getPath() + "/test");
-        if(!path.exists())
-        {
-            path.mkdir();
+    public class performanceHandler extends Handler {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            text_StoragePerformance.setText("쓰기 속도 : " + StorageTools.getFileSize(StorageTools.writeTest(Environment.getExternalStorageDirectory(), 100)) + "/ sec\n"
+                    + "읽기 속도 : " + StorageTools.getFileSize(StorageTools.readTest(Environment.getExternalStorageDirectory(), 100)) + "/ sec");
+            updateView();
         }
+    }
+    //---------------------------------------------------------------------뷰------------------------------------------------------------------------//
 
-        try {
-            start_t = System.currentTimeMillis();
-            for(int i=0; i<repeat;i++)
-            {
-                buf = new BufferedReader(new FileReader(path + "/testfile.txt"));
-                while ((line = buf.readLine()) != null)
-                {
-                    stb.append(line + "\n");
-                }
-                average += path.length()*1000000;
+
+    //-------------------------------------------------------------------이벤트----------------------------------------------------------------------//
+    public class BtnOnClickListener implements Button.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            if (v.getId() == R.id.button_CacheCleaner) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        packageSize = 0;
+                        getpackageSize();
+                    }}).start();
             }
-            end_t = System.currentTimeMillis();
-            average /= (end_t-start_t)*1000;
-
-            buf.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return average;
     }
+    //-------------------------------------------------------------------이벤트----------------------------------------------------------------------//
 
-    private long writeTest(File testPath,int repeat)
-    {
-        long average=0;
-        long testdata;
-        Date date;
-        SimpleDateFormat sdf;
-        BufferedWriter buf=null;
-        String nowTime;
 
-        File path = new File(testPath.getPath() + "/test");
-        if(!path.exists())
-        {
-            path.mkdir();
-        }
 
-        try
-        {
-            testdata = System.currentTimeMillis();
-            date = new Date(testdata);
-            sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            nowTime = sdf.format(date);
+    //-------------------------------------------------------------------캐시------------------------------------------------------------------------//
+    long packageSize = 0, size = 0;
+    AppDetails cAppDetails;
+    public ArrayList<AppDetails.PackageInfoStruct> res;
 
-            start_t = System.currentTimeMillis();
-            for(int i =0; i<repeat ; i++)
-            {
-                buf = new BufferedWriter(new FileWriter(path + "/testfile.txt", false));
-                for(int j=0; j<repeat ; j++)
-                {
-                    buf.append(nowTime);
-                }
-                buf.flush();
-                buf.close();
-
-                average += path.length()*1000000;
+    private void getpackageSize() {
+        cAppDetails = new AppDetails(this.getActivity());
+        res = cAppDetails.getPackages();
+        if (res == null)
+            return;
+        for (int m = 0; m < res.size(); m++) {
+            PackageManager pm = getActivity().getPackageManager();
+            Method getPackageSizeInfo;
+            try {
+                getPackageSizeInfo = pm.getClass().getMethod(
+                        "getPackageSizeInfo", String.class,
+                        IPackageStatsObserver.class);
+                getPackageSizeInfo.invoke(pm, res.get(m).pname,
+                        new cachePackState());
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
             }
-            end_t = System.currentTimeMillis();
-            average /= (end_t-start_t)*1000;
         }
-        catch (IOException e)
-        {
-            e.printStackTrace();
+
+        Log.v("Total Cache Size", " " + packageSize);
+    }
+
+    private Handler cacheSizeHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case FETCH_PACKAGE_SIZE_COMPLETED:
+                    if (packageSize > 0)
+                    {
+                        long size_current = StorageTools.getExternalStorageMemorySize(1) + StorageTools.getInternStorageMemorySize(1);
+                        float percent = (float)Math.round((float)packageSize/size_current*10000)/100;
+
+                        text_totalCacheSize.setText("Cache Size : " + StorageTools.getFileSize(packageSize));
+                        text_totalCacheShare.setText("Cache Share : " + percent + "%" + "   (CacheSize / RemainStorage)");
+                        if(percent < 5)
+                        {
+                            text_cacheComment.setText(R.string.storage_cache_default);
+                            text_cacheComment.setTextColor(Color.parseColor("#32CD32"));
+
+                        }
+                        else if(percent < 10)
+                        {
+                            text_cacheComment.setText(R.string.storage_cache_little);
+                            text_cacheComment.setTextColor(Color.parseColor("#FF4500"));
+                        }
+                        else
+                        {
+                            text_cacheComment.setText(R.string.storage_cache_floods);
+                            text_cacheComment.setTextColor(Color.parseColor("#FF0000"));
+                        }
+                        break;
+                    }
+                default:
+                    break;
+            }
         }
-        return average;
-    }
+    };
 
-    float sizeofFolder_extern(File dir)
-    {
-        if(isExternStorageAccessable()) {
-            StatFs stat = new StatFs(dir.getPath());
-            long blockSize = stat.getBlockSizeLong();
-            long totalSize = stat.getBlockCountLong();
-            long availSize = stat.getAvailableBlocksLong();
-
-            return blockSize*(totalSize-availSize);
-        }
-        return 0;
-    }
-
-    private String getFileSize(long size)
-    {
-        final String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
-        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
-        return new DecimalFormat("0.##").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
-    }
-
-
-    private boolean isExternStorageAccessable()
-    { //외부 저장소 접근 가능 유무 체크
-        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-    }
-
-    private long checkExternMemorySize()
-    {
-        if(isExternStorageAccessable())
-        {
-            StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
-            long blockSize = stat.getBlockSizeLong();
-            long totalSize = stat.getBlockCountLong();
-
-            return blockSize * totalSize;
-        }
-        return 0;
-    }
-
-    private long checkExternMemoryAvail()
-    {
-        if(isExternStorageAccessable())
-        {
-            StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
-            long blockSize = stat.getBlockSizeLong();
-            long availSize = stat.getAvailableBlocksLong();
-
-            return blockSize * availSize;
-        }
-        return 0;
-    }
-
-    private long checkInternMemorySize()
-    {//내부 저장소의 전체 크기
-        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
-        long blockSize = stat.getBlockSizeLong();
-        long totalSize = stat.getBlockCountLong();
-
-        return blockSize * totalSize;
-    }
-
-    private long checkInternMemoryAvail()
-    {//내부 저장소의 사용가능한 크기
-        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
-        long blockSize = stat.getBlockSizeLong();
-        long availSize = stat.getAvailableBlocksLong();
-
-        return blockSize * availSize;
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        th.interrupt();
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri)
-    {
-        if (mListener != null)
-        {
-            mListener.onFragmentInteraction(uri);
+    private class cachePackState extends IPackageStatsObserver.Stub {
+        @Override
+        public void onGetStatsCompleted(PackageStats pStats, boolean succeeded)
+                throws RemoteException {
+            Log.d("Package Size", pStats.packageName + "");
+            Log.i("Cache Size", pStats.cacheSize + "");
+            Log.w("Data Size", pStats.dataSize + "");
+            packageSize = packageSize + pStats.cacheSize;
+            Log.v("Total Cache Size", " " + packageSize);
+            cacheSizeHandler.sendEmptyMessage(FETCH_PACKAGE_SIZE_COMPLETED);
         }
     }
-
-
-    @Override
-    public void onAttach(Context context)
-    {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener)
-        {
-            mListener = (OnFragmentInteractionListener) context;
-        }
-        else
-        {
-            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach()
-    {
-        super.onDetach();
-        mListener = null;
-    }
-
-    public interface OnFragmentInteractionListener
-    {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
-
-
-
+    //-------------------------------------------------------------------캐시------------------------------------------------------------------------//
 }

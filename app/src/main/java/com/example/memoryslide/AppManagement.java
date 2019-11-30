@@ -161,6 +161,7 @@ public class AppManagement extends Fragment {
                             && customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() >= usageStatsList.get(i).getLastTimeUsed()) { //add한것보다 작으면 걍 continue
                         continue;
                     }
+
                 }
             } catch (Exception e) {
                 Log.d("count", "" + i);
