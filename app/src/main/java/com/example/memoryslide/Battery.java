@@ -1,16 +1,20 @@
 package com.example.memoryslide;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,8 +22,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 public class Battery extends Fragment {
@@ -36,6 +43,7 @@ public class Battery extends Fragment {
 
 
     }
+
 
     private OnFragmentInteractionListener mListener;
 
@@ -130,7 +138,7 @@ public class Battery extends Fragment {
         tipButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("mymy", "btnCLick");
+              //  Log.d("mymy", "btnCLick");
                 Intent intent = new Intent(getActivity(), BatteryReduceActivity.class);
                 startActivity(intent);
             }
@@ -144,6 +152,20 @@ public class Battery extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.System.canWrite(getContext())) {
+                Toast.makeText(getContext(), "권한 허가 완료", Toast.LENGTH_SHORT).show();
+
+
+            } else {
+                Toast.makeText(getContext(), "권한 허가가 필요합니다.", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + getActivity().getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        }
+
     }
     private void setup() // broadcastReceiver + registerReceiver
     {
@@ -151,7 +173,7 @@ public class Battery extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                //Log.d("mymy", "onReceive()");
+              //  Log.d("mymy", "onReceive()");
 
                 if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
                     BtInfo.health = intent.getIntExtra("health", BatteryManager.BATTERY_HEALTH_UNKNOWN);
