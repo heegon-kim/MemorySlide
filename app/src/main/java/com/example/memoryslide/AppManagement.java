@@ -1,14 +1,11 @@
 package com.example.memoryslide;
 
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.ProgressDialog;
-import android.app.usage.UsageEvents;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
@@ -21,6 +18,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,6 +29,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -55,7 +58,9 @@ public class AppManagement extends Fragment {
     public TextView noUsedApp;     // 10일이내 사용기록이 없는 어플 개수 표시
     private ProgressDialog progressDial; //  어플 로딩시 나타낼 다이얼로그
     private DateFormat mDateFormat = new SimpleDateFormat();    // 날짜 형식 만들기
-    private int mPosition;  // spinner에서 몇번째 항목을 눌렀는지
+    public int mPosition;  // spinner에서 몇번째 항목을 눌렀는지
+    public String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/test/blockingAppList.txt";
+    public List<String> blockingAppList;
 
     public static AppManagement newInstance() {
         AppManagement fragment = new AppManagement();
@@ -87,6 +92,7 @@ public class AppManagement extends Fragment {
         Spinner spinner = (Spinner) v.findViewById(R.id.sort);  // 정렬 기준 정하기
         appCountText = (TextView) v.findViewById(R.id.appCount);    // 설치된 어플
         noUsedApp = (TextView) v.findViewById(R.id.noUsedAppCount); // 사용되지 않는 어플
+
         progressDial = new ProgressDialog(getActivity());    // 앱 로딩시 진행중 다이얼로그
         progressDial.setCancelable(true);
         progressDial.setMessage("로딩중입니다...");
@@ -97,9 +103,11 @@ public class AppManagement extends Fragment {
             @SuppressLint("LongLogTag")
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, final int position, long id) {   // 선택된 기준에 따른 처리
-                progressDial.show();
-                mPosition = position;
-                noTimeCount = 0;
+                progressDial.show();    // 진행중 다이얼로그 띄우기
+                blockingAppList = new ArrayList<>();
+                ReadTextFile(filePath); // 차단 어플 리스트 받아오기
+                mPosition = position;   // Spinner 몇번째 메뉴인지
+                noTimeCount = 0;    // 최근 실행기록이 없는 어플 개수
                 StatsUsageInterval statsUsageInterval = null;
                 if (position == 0 || position == 1) // 선택한 아이템이 "오래전에 실행" / "최근에 실행"
                     statsUsageInterval = StatsUsageInterval.getValue("Weekly"); // Weekly 단위로 검색
@@ -148,9 +156,9 @@ public class AppManagement extends Fragment {
                             && customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() >= usageStatsList.get(i).getLastTimeUsed()) { //add한것보다 작으면 걍 continue
                         continue;
                     }
-
                 }
             } catch (Exception e) {
+                Log.d("log_tag", "updateAppList method");
             }
             for (int j = 0; j < pack.size(); j++) {
                 if (pack.get(j).activityInfo.packageName.equals(customUsageStats.usageStats.getPackageName())) {       // 실행 가능한 어플만 골라냄
@@ -175,6 +183,15 @@ public class AppManagement extends Fragment {
                         if (customUsageStats.usageStats.getLastTimeUsed() <= 0)     // 마지막 사용기간 검색이 먼 과거일 경우
                             noTimeCount++;
 
+                        customUsageStats.spinnerPos = mPosition;    // Spinner에서 몇번째 메뉴인지
+
+                        for (int k = 0; k < blockingAppList.size(); k++) {
+                            if (blockingAppList.get(k).equals(customUsageStats.usageStats.getPackageName()))
+                                customUsageStats.blockingState = true;
+                        }
+
+
+
                     } catch (PackageManager.NameNotFoundException e) {
                         Log.w(TAG, String.format("App Icon is not found for %s",
                                 customUsageStats.usageStats.getPackageName()));
@@ -192,7 +209,7 @@ public class AppManagement extends Fragment {
         } else if (mPosition == 1) {   // 정렬기준이 "최근에 실행"
             Collections.sort(customUsageStatsList, new myComparatorDesc());  // 실행기록 내림차순 정렬
         }
-        mAdapter.setCustomUsageStatsList(customUsageStatsList);
+        mAdapter.setCustomUsageStatsList(customUsageStatsList, blockingAppList);
         mAdapter.notifyDataSetChanged();    // 바뀐 데이터에 대한 어댑터 갱신
         mRecyclerView.setAdapter(mAdapter); // Adapter 부착
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());   // Animation Defualt 설정
@@ -220,7 +237,6 @@ public class AppManagement extends Fragment {
     private static class LastTimeLaunchedComparatorDesc implements Comparator<UsageStats> {     // 마지막 실행 내림차순 정렬
         @Override
         public int compare(UsageStats left, UsageStats right) {
-            //return Long.compare(right.getLastTimeUsed(), left.getLastTimeUsed());
             return left.getPackageName().compareTo(right.getPackageName());   // 이름 오름차순
         }
     }
@@ -228,7 +244,6 @@ public class AppManagement extends Fragment {
     private static class LastTimeLaunchedComparatorAsc implements Comparator<UsageStats> {     // 마지막 실행 오름차순 정렬
         @Override
         public int compare(UsageStats left, UsageStats right) {
-            //return Long.compare(right.getLastTimeUsed(), left.getLastTimeUsed());
             return left.getPackageName().compareTo(right.getPackageName());   // 이름 오름차순
         }
     }
@@ -246,7 +261,6 @@ public class AppManagement extends Fragment {
     private static class myComparatorAsc implements Comparator<AppInfo> {     // 오름차순 정렬
         @Override
         public int compare(AppInfo left, AppInfo right) {
-
             return Long.compare(left.usageStats.getLastTimeUsed(), right.usageStats.getLastTimeUsed());
         }
     }
@@ -254,7 +268,6 @@ public class AppManagement extends Fragment {
     private static class myComparatorDesc implements Comparator<AppInfo> {     // 오름차순 정렬
         @Override
         public int compare(AppInfo left, AppInfo right) {
-
             return Long.compare(right.usageStats.getLastTimeUsed(), left.usageStats.getLastTimeUsed());
         }
     }
@@ -282,78 +295,21 @@ public class AppManagement extends Fragment {
             return null;
         }
     }
-    // 이 밑으로는 어플 차단 기능 구현 메서드(아직 구현중)
-    void allKillRunningApps() {
-        ActivityManager activity_manager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> app_list = activity_manager.getRunningAppProcesses();
 
-        Log.d("log_tag", "Try kill process..");
-        for (int i = 0; i < app_list.size(); i++) {
-            //Log.d(log_tag, "[" + getApplicationName(app_list.get(i).processName) + "] processName:" + app_list.get(i).processName + ", importance: " + getProcessImportance(app_list.get(i).importance));
-            String app_name = getApplicationName(app_list.get(i).processName);
-            // com.everytime.v2
-            //activity_manager.killBackgroundProcesses(app_list.get(i).processName);
-            if ("com.getpackagelist.app".equals(app_list.get(i).processName) == false) {
-                Log.d("log_tag", "[" + app_name + "] " + getProcessImportance(app_list.get(i).importance));
-                android.os.Process.sendSignal(app_list.get(i).pid, android.os.Process.SIGNAL_KILL);
-                activity_manager.killBackgroundProcesses(app_list.get(i).processName);
+    //경로의 텍스트 파일읽기
+    public void ReadTextFile(String path) {
+        StringBuffer strBuffer = new StringBuffer();
+        try {
+            InputStream is = new FileInputStream(path);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                blockingAppList.add(line);
             }
-        }
-        System.gc();
-    }
-
-    String getApplicationName(String package_name) {
-        List<PackageInfo> packageinfo = activity.getPackageManager().getInstalledPackages(PackageManager.GET_ACTIVITIES);
-
-        for (int i = 0; i < packageinfo.size(); i++) {
-            PackageInfo pi = packageinfo.get(i);
-            if (package_name.equals(pi.packageName) == true) {
-                String app_name = pi.applicationInfo.loadLabel(activity.getPackageManager()).toString();
-                return app_name;
-            }
-        }
-        return null;
-    }
-
-    String getProcessImportance(int importance) {
-        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_EMPTY == importance) {
-            return "IMPORTANCE_EMPTY";
-        }
-        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_BACKGROUND == importance) {
-            return "IMPORTANCE_BACKGROUND";
-        }
-        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE == importance) {
-            return "IMPORTANCE_SERVICE";
-        }
-        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE == importance) {
-            return "IMPORTANCE_VISIBLE";
-        }
-        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND == importance) {
-            return "IMPORTANCE_FOREGROUND";
-        }
-        return null;
-    }
-
-    private String getForegroundPackageName() {
-        String packageName = null;
-        UsageStatsManager usageStatsManager = (UsageStatsManager) activity.getSystemService(Context.USAGE_STATS_SERVICE);
-        final long endTime = System.currentTimeMillis();
-        final long beginTime = endTime - 10000;
-        final UsageEvents usageEvents = usageStatsManager.queryEvents(beginTime, endTime);
-        while (usageEvents.hasNextEvent()) {
-            UsageEvents.Event event = new UsageEvents.Event();
-            usageEvents.getNextEvent(event);
-            if (event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
-                packageName = event.getPackageName();
-            }
-        }
-        return packageName;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            reader.close();
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -373,7 +329,6 @@ public class AppManagement extends Fragment {
         super.onDetach();
         mListener = null;
     }
-
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
