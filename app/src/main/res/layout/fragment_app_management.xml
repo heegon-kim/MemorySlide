@@ -25,7 +25,6 @@
             android:id="@+id/sort"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:entries="@array/spinner_list" />
@@ -56,7 +55,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/appmanagement_intalled_app"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="2dp"
                 android:text="@string/appmanagement_noUsed_app"
                 android:textSize="10sp"
                 tools:ignore="SmallSp" />
@@ -66,7 +65,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="3dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:layout_toRightOf="@id/appmanagement_noUsed_app"
                 android:layout_below="@id/appmanagement_intalled_app"
                 android:text="@string/appmanagement_zero"

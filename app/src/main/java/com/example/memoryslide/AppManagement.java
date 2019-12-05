@@ -1,14 +1,14 @@
 package com.example.memoryslide;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
+import android.app.usage.UsageEvents;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
@@ -31,8 +31,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,25 +44,19 @@ import static android.content.ContentValues.TAG;
 
 
 public class AppManagement extends Fragment {
-    static FragmentActivity activity;
-    UsageStatsManager mUsageStatsManager;
+    static FragmentActivity activity;   // getActivity() 그릇
+    UsageStatsManager mUsageStatsManager;   // UsageStatsManager 사용을 위한 객체
     private RecyclerView mRecyclerView;
-    private RecyclerDataAdapter mAdapter;
+    private RecyclerDataAdapter mAdapter;   // RecyclerView에 붙일 Apdapter
     private RecyclerView.LayoutManager mLayoutManager;
-    private ArrayList<AppInfo> mAppInfo = null;
     private OnFragmentInteractionListener mListener;
     private TextView appCountText;  // 설치된 어플 개수
     public int noTimeCount = 0;   // 10일이내 사용기록이 없는 어플 개수
-    public TextView noUsedApp;
-    private ProgressDialog progressBar;
-    private DateFormat mDateFormat = new SimpleDateFormat();
-    private int mPosition;
+    public TextView noUsedApp;     // 10일이내 사용기록이 없는 어플 개수 표시
+    private ProgressDialog progressDial; //  어플 로딩시 나타낼 다이얼로그
+    private DateFormat mDateFormat = new SimpleDateFormat();    // 날짜 형식 만들기
+    private int mPosition;  // spinner에서 몇번째 항목을 눌렀는지
 
-    public AppManagement() {
-        // Required empty public constructor
-    }
-
-    // TODO: Rename and change types and number of parameters
     public static AppManagement newInstance() {
         AppManagement fragment = new AppManagement();
         Bundle args = new Bundle();
@@ -74,17 +66,17 @@ public class AppManagement extends Fragment {
 
     @SuppressLint("WrongConstant")
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {   // fragment 생성
         super.onCreate(savedInstanceState);
-        activity = (FragmentActivity) getActivity();
-        mUsageStatsManager = (UsageStatsManager) getActivity()
-                .getSystemService("usagestats"); //Context.USAGE_STATS_SERVICE
+        activity = (FragmentActivity) getActivity();    // activity를 저장함
+        mUsageStatsManager = (UsageStatsManager) activity
+                .getSystemService("usagestats"); //Context.USAGE_STATS_SERVICE  // UsageStatsManager를 이용하여 현재 시스템서비스를 가져옴
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_app_management, container, false);  // findViewByID 못쓰기때문에 요걸로 대체해야댐.
+        View v = inflater.inflate(R.layout.fragment_app_management, container, false);  // fragment에서는 바로 findViewByID 못쓰기때문에 요걸로 대체해야댐.
         mAdapter = new RecyclerDataAdapter();
         mRecyclerView = (RecyclerView) v.findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
@@ -92,69 +84,64 @@ public class AppManagement extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.scrollToPosition(0);
         mRecyclerView.setAdapter(mAdapter);
-        Spinner spinner = (Spinner) v.findViewById(R.id.sort);
-        appCountText = (TextView) v.findViewById(R.id.appCount);
-        noUsedApp = (TextView) v.findViewById(R.id.noUsedAppCount);
-        progressBar = new ProgressDialog(getActivity());    // 앱 로딩시 진행중 다이얼로그
-        progressBar.setCancelable(true);
-        progressBar.setMessage("로딩중입니다...");
-        progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressBar.setProgress(0);
-        progressBar.show();
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        Spinner spinner = (Spinner) v.findViewById(R.id.sort);  // 정렬 기준 정하기
+        appCountText = (TextView) v.findViewById(R.id.appCount);    // 설치된 어플
+        noUsedApp = (TextView) v.findViewById(R.id.noUsedAppCount); // 사용되지 않는 어플
+        progressDial = new ProgressDialog(getActivity());    // 앱 로딩시 진행중 다이얼로그
+        progressDial.setCancelable(true);
+        progressDial.setMessage("로딩중입니다...");
+        progressDial.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDial.setProgress(0);
+        progressDial.show();
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {    // 정렬기준 spinner 아이템 항목 선택
             @SuppressLint("LongLogTag")
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, final int position, long id) {   // 선택된 기준에 따른 처리
-                progressBar.show();
+                progressDial.show();
                 mPosition = position;
                 noTimeCount = 0;
                 StatsUsageInterval statsUsageInterval = null;
-                if (position == 0 || position == 1)
-                    statsUsageInterval = StatsUsageInterval.getValue("Weekly");
-                else
-                    statsUsageInterval = StatsUsageInterval.getValue("Daily");
+                if (position == 0 || position == 1) // 선택한 아이템이 "오래전에 실행" / "최근에 실행"
+                    statsUsageInterval = StatsUsageInterval.getValue("Weekly"); // Weekly 단위로 검색
+                else    // 실행기록이 높은 순
+                    statsUsageInterval = StatsUsageInterval.getValue("Daily"); // Daily 단위로 검색
                 if (statsUsageInterval != null) {
-                    List<UsageStats> usageStatsList =
-                            getUsageStatistics(statsUsageInterval.mInterval);
+                    List<UsageStats> usageStatsList = getUsageStatistics(statsUsageInterval.mInterval); // 내 폰의 이용정보를 가져옴
                     if (position == 0)  // 최근실행 오름차순
                         Collections.sort(usageStatsList, new LastTimeLaunchedComparatorAsc());
                     else if (position == 1)  // 최근실행 내림차순
                         Collections.sort(usageStatsList, new LastTimeLaunchedComparatorDesc());
                     else if (position == 2)  // 실행시간 오름차순
                         Collections.sort(usageStatsList, new executeComparatorDesc());
-                    // else if (position == 3) // 실행시간 내림차순
-                    //     Collections.sort(usageStatsList, new executeComparatorDesc());
 
-                    updateAppsList(usageStatsList);
+                    updateAppsList(usageStatsList); // 데이터를 뽑아쓰기 위해 정렬한 List를 넘김
                 }
-                progressBar.dismiss();
+                progressDial.dismiss();  // 다이얼로그 종료
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
-
         return v;
     }
 
-    void updateAppsList(List<UsageStats> usageStatsList) {
+    void updateAppsList(List<UsageStats> usageStatsList) {  // 넘겨받은 이용목록 List를 가지고 필요한 항목들을 뽑아냄
         List<AppInfo> customUsageStatsList = new ArrayList<>();
 
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         // 설치된 앱 목록 가져오기
         List<ResolveInfo> pack = getActivity().getPackageManager().queryIntentActivities(mainIntent, 0); // 실행가능한 package만
-        long appLastTimeRecord;
-        int addingCount = 0;
+        int addingCount = 0;    // customUsageStatsList의 index 번호
         for (int i = 0; i < usageStatsList.size(); i++) {
-            AppInfo customUsageStats = new AppInfo();
+            AppInfo customUsageStats = new AppInfo();   // 필요한 정보를 뽑아 저장하기 위한 AppInfo클래스의 객체
             customUsageStats.usageStats = usageStatsList.get(i);
             try {
-                if (mPosition == 0 || mPosition == 1) {
+                if (mPosition == 0 || mPosition == 1) { // 선택한 아이템이 "오래전에 실행" / "최근에 실행"
                     if (i > 0 && i + 1 < usageStatsList.size() && customUsageStatsList.get(addingCount - 1).usageStats.getPackageName().equals(usageStatsList.get(i).getPackageName())
                             && customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() < usageStatsList.get(i).getLastTimeUsed()) { // add한것보다 크면 add한거 remove하고 더 큰거 add
-                        if (customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() <= 0)
+                        if (customUsageStatsList.get(addingCount - 1).usageStats.getLastTimeUsed() <= 0)    // 마지막실행 검색이 안되면 count에서 제외
                             noTimeCount--;
                         customUsageStatsList.remove(addingCount--);
                     } else if (i > 0 && i + 1 < usageStatsList.size() && customUsageStatsList.get(addingCount - 1).usageStats.getPackageName().equals(usageStatsList.get(i).getPackageName())
@@ -164,7 +151,6 @@ public class AppManagement extends Fragment {
 
                 }
             } catch (Exception e) {
-                Log.d("count", "" + i);
             }
             for (int j = 0; j < pack.size(); j++) {
                 if (pack.get(j).activityInfo.packageName.equals(customUsageStats.usageStats.getPackageName())) {       // 실행 가능한 어플만 골라냄
@@ -172,22 +158,21 @@ public class AppManagement extends Fragment {
                         String appName = getActivity().getPackageManager().getApplicationLabel
                                 (getActivity().getPackageManager().getApplicationInfo
                                         (customUsageStats.usageStats.getPackageName(), PackageManager.GET_UNINSTALLED_PACKAGES)) //apps.get(index)
-                                .toString();
+                                .toString();    // 어플이름 뽑아내기
                         customUsageStats.appName = appName;
 
                         Drawable appIcon = getActivity().getPackageManager()
-                                .getApplicationIcon(customUsageStats.usageStats.getPackageName());
+                                .getApplicationIcon(customUsageStats.usageStats.getPackageName());  // 어플 아이콘 뽑아내기
                         customUsageStats.appIcon = appIcon;
 
                         long intstallTimeMillisec = getActivity().getPackageManager().getPackageInfo(customUsageStats.usageStats.getPackageName(), 0).firstInstallTime;  // 설치날짜 정보
-
                         String installDate = "" + mDateFormat.format(new Date(intstallTimeMillisec));
                         customUsageStats.installDate = installDate;
 
-                        String executeTime = "" + customUsageStats.usageStats.getTotalTimeInForeground() / 60000 + "분";
+                        String executeTime = "" + customUsageStats.usageStats.getTotalTimeInForeground() / 60000 + "분"; // 총 실행시간 뽑아내기
                         customUsageStats.executeTime = executeTime;
 
-                        if (customUsageStats.usageStats.getLastTimeUsed() <= 0)
+                        if (customUsageStats.usageStats.getLastTimeUsed() <= 0)     // 마지막 사용기간 검색이 먼 과거일 경우
                             noTimeCount++;
 
                     } catch (PackageManager.NameNotFoundException e) {
@@ -195,27 +180,26 @@ public class AppManagement extends Fragment {
                                 customUsageStats.usageStats.getPackageName()));
                         customUsageStats.appIcon = getActivity().getDrawable(R.drawable.ic_default_app_launcher);
                     }
-                    customUsageStatsList.add(addingCount++, customUsageStats);
+                    customUsageStatsList.add(addingCount++, customUsageStats);  // 필요한 정보들만 뽑아낸 customUsageStats을 list의 일부분으로 추가시킴
                     break;
                 }
             }
         }
-        if (mPosition == 0) {
-            Collections.sort(customUsageStatsList, new myComparatorDesc());
-            noUsedApp.setText(" " + noTimeCount + " 개");
-            appCountText.setText(" " + --addingCount + " 개"); // 어플 개수 TextView
-        } else if (mPosition == 1) {
-            Collections.sort(customUsageStatsList, new myComparatorAsc());
+        if (mPosition == 0) {   // 정렬기준이 "오랜전에 실행"
+            Collections.sort(customUsageStatsList, new myComparatorAsc());  // 실행기록 오름차순 정렬
+            appCountText.setText(" " + --addingCount + " 개"); // 설치된 어플 개수 TextView
+            noUsedApp.setText(" " + noTimeCount + " 개");    // 실행기록이 오래된 어플 개수
+        } else if (mPosition == 1) {   // 정렬기준이 "최근에 실행"
+            Collections.sort(customUsageStatsList, new myComparatorDesc());  // 실행기록 내림차순 정렬
         }
         mAdapter.setCustomUsageStatsList(customUsageStatsList);
-        mAdapter.notifyDataSetChanged();
+        mAdapter.notifyDataSetChanged();    // 바뀐 데이터에 대한 어댑터 갱신
         mRecyclerView.setAdapter(mAdapter); // Adapter 부착
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.scrollToPosition(0);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());   // Animation Defualt 설정
+        mRecyclerView.scrollToPosition(0);  // 스크롤 설정
     }
 
-    public List<UsageStats> getUsageStatistics(int intervalType) {
-        // Get the app statistics since one year ago from the current time.
+    public List<UsageStats> getUsageStatistics(int intervalType) {     // 현재시간으로부터 과거의 어플 이용정보를 가져옴
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.YEAR, -1);
 
@@ -223,17 +207,17 @@ public class AppManagement extends Fragment {
                 .queryUsageStats(intervalType, cal.getTimeInMillis(),
                         System.currentTimeMillis());
 
-        if (queryUsageStats.size() == 0) {
-            Log.i(TAG, "The user may not allow the access to apps usage. ");
+        if (queryUsageStats.size() == 0) {  // 이용정보를 가져올 수 없는 경우
+            Log.i(TAG, "사용자가 사용정보 접근 허용을 하지 않았습니다. ");
             Toast.makeText(getActivity(),
                     getString(R.string.explanation_access_to_appusage_is_not_enabled),
                     Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));   // 해당 설정화면을 인텐트로 띄어줌
         }
-        return queryUsageStats;
+        return queryUsageStats; // 이용정보 쿼리를 반환
     }
 
-    private static class LastTimeLaunchedComparatorDesc implements Comparator<UsageStats> {     // 내림차순 정렬
+    private static class LastTimeLaunchedComparatorDesc implements Comparator<UsageStats> {     // 마지막 실행 내림차순 정렬
         @Override
         public int compare(UsageStats left, UsageStats right) {
             //return Long.compare(right.getLastTimeUsed(), left.getLastTimeUsed());
@@ -241,7 +225,7 @@ public class AppManagement extends Fragment {
         }
     }
 
-    private static class LastTimeLaunchedComparatorAsc implements Comparator<UsageStats> {     // 오름차순 정렬
+    private static class LastTimeLaunchedComparatorAsc implements Comparator<UsageStats> {     // 마지막 실행 오름차순 정렬
         @Override
         public int compare(UsageStats left, UsageStats right) {
             //return Long.compare(right.getLastTimeUsed(), left.getLastTimeUsed());
@@ -249,17 +233,7 @@ public class AppManagement extends Fragment {
         }
     }
 
-    private static class executeComparatorAsc implements Comparator<UsageStats> {     // 오름차순 정렬
-        @Override
-        public int compare(UsageStats left, UsageStats right) {
-            long left_intstallTimeMillisec = left.getTotalTimeInForeground();
-            long right_intstallTimeMillisec = right.getTotalTimeInForeground();
-
-            return Long.compare(left_intstallTimeMillisec, right_intstallTimeMillisec);
-        }
-    }
-
-    private static class executeComparatorDesc implements Comparator<UsageStats> {     // 오름차순 정렬
+    private static class executeComparatorDesc implements Comparator<UsageStats> {     // 총 실행시간 오름차순 정렬
         @Override
         public int compare(UsageStats left, UsageStats right) {
             long left_intstallTimeMillisec = left.getTotalTimeInForeground();
@@ -269,7 +243,7 @@ public class AppManagement extends Fragment {
         }
     }
 
-    private static class myComparatorDesc implements Comparator<AppInfo> {     // 오름차순 정렬
+    private static class myComparatorAsc implements Comparator<AppInfo> {     // 오름차순 정렬
         @Override
         public int compare(AppInfo left, AppInfo right) {
 
@@ -277,7 +251,7 @@ public class AppManagement extends Fragment {
         }
     }
 
-    private static class myComparatorAsc implements Comparator<AppInfo> {     // 오름차순 정렬
+    private static class myComparatorDesc implements Comparator<AppInfo> {     // 오름차순 정렬
         @Override
         public int compare(AppInfo left, AppInfo right) {
 
@@ -285,7 +259,7 @@ public class AppManagement extends Fragment {
         }
     }
 
-    static enum StatsUsageInterval {
+    static enum StatsUsageInterval {    // 현재는 Weekly와 Monthly 단위만 사용중
         DAILY("Daily", UsageStatsManager.INTERVAL_DAILY),
         WEEKLY("Weekly", UsageStatsManager.INTERVAL_WEEKLY),
         MONTHLY("Monthly", UsageStatsManager.INTERVAL_MONTHLY),
@@ -307,6 +281,73 @@ public class AppManagement extends Fragment {
             }
             return null;
         }
+    }
+    // 이 밑으로는 어플 차단 기능 구현 메서드(아직 구현중)
+    void allKillRunningApps() {
+        ActivityManager activity_manager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> app_list = activity_manager.getRunningAppProcesses();
+
+        Log.d("log_tag", "Try kill process..");
+        for (int i = 0; i < app_list.size(); i++) {
+            //Log.d(log_tag, "[" + getApplicationName(app_list.get(i).processName) + "] processName:" + app_list.get(i).processName + ", importance: " + getProcessImportance(app_list.get(i).importance));
+            String app_name = getApplicationName(app_list.get(i).processName);
+            // com.everytime.v2
+            //activity_manager.killBackgroundProcesses(app_list.get(i).processName);
+            if ("com.getpackagelist.app".equals(app_list.get(i).processName) == false) {
+                Log.d("log_tag", "[" + app_name + "] " + getProcessImportance(app_list.get(i).importance));
+                android.os.Process.sendSignal(app_list.get(i).pid, android.os.Process.SIGNAL_KILL);
+                activity_manager.killBackgroundProcesses(app_list.get(i).processName);
+            }
+        }
+        System.gc();
+    }
+
+    String getApplicationName(String package_name) {
+        List<PackageInfo> packageinfo = activity.getPackageManager().getInstalledPackages(PackageManager.GET_ACTIVITIES);
+
+        for (int i = 0; i < packageinfo.size(); i++) {
+            PackageInfo pi = packageinfo.get(i);
+            if (package_name.equals(pi.packageName) == true) {
+                String app_name = pi.applicationInfo.loadLabel(activity.getPackageManager()).toString();
+                return app_name;
+            }
+        }
+        return null;
+    }
+
+    String getProcessImportance(int importance) {
+        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_EMPTY == importance) {
+            return "IMPORTANCE_EMPTY";
+        }
+        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_BACKGROUND == importance) {
+            return "IMPORTANCE_BACKGROUND";
+        }
+        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE == importance) {
+            return "IMPORTANCE_SERVICE";
+        }
+        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE == importance) {
+            return "IMPORTANCE_VISIBLE";
+        }
+        if (ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND == importance) {
+            return "IMPORTANCE_FOREGROUND";
+        }
+        return null;
+    }
+
+    private String getForegroundPackageName() {
+        String packageName = null;
+        UsageStatsManager usageStatsManager = (UsageStatsManager) activity.getSystemService(Context.USAGE_STATS_SERVICE);
+        final long endTime = System.currentTimeMillis();
+        final long beginTime = endTime - 10000;
+        final UsageEvents usageEvents = usageStatsManager.queryEvents(beginTime, endTime);
+        while (usageEvents.hasNextEvent()) {
+            UsageEvents.Event event = new UsageEvents.Event();
+            usageEvents.getNextEvent(event);
+            if (event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
+                packageName = event.getPackageName();
+            }
+        }
+        return packageName;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

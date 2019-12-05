@@ -1,12 +1,8 @@
 package com.example.memoryslide;
 
-import android.animation.ValueAnimator;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,10 +24,9 @@ import java.util.Date;
 import java.util.List;
 
 public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapter.ViewHolder> {
-    private Context context;
+    private Context context;    // context 정보를 담을 그릇
     private List<AppInfo> mCustomUsageStatsList = new ArrayList<>();
     private DateFormat mDateFormat = new SimpleDateFormat();
-    private View recordView;
 
     @NonNull
     @Override
@@ -57,7 +52,7 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
     }
 
     @Override
-    public int getItemCount() {
+    public int getItemCount() {     // 아이템 항목 개수 반환
         if (mCustomUsageStatsList == null) return 0;
         return mCustomUsageStatsList.size();
     }
@@ -69,7 +64,6 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
 
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnCreateContextMenuListener {
         private AppInfo appInfo;
-        private int position;
         public RelativeLayout parentRelativeLayout; // 부모 relativeLayout
         public TextView appName;    // 어플 이름
         public TextView mLastTimeUsed;  // 가장 최근에 사용한 시간
@@ -77,19 +71,19 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
         public TextView install;    // 설치 날짜 시간
         public TextView executeTime;    // 해당일 실행하고 있던 누적시간
         public String appPackageName;   // 어플 패키지 이름
+        public boolean blockFlag;       // 어플 차단 현황
 
         //com.example.memoryslide.ViewHolder 생성
         public ViewHolder(View itemView) {
             super(itemView);
 
             //View를 넘겨받아서 ViewHolder를 완성
-            parentRelativeLayout = (RelativeLayout) itemView.findViewById(R.id.relativeLayout);
-            appName = (TextView) itemView.findViewById(R.id.txtName);
-            mLastTimeUsed = (TextView) itemView.findViewById(R.id.textview_last_time_used);
-            appIcon = (ImageView) itemView.findViewById(R.id.appIcon);
-            install = (TextView) itemView.findViewById(R.id.txtInstall);
-            executeTime = (TextView) itemView.findViewById(R.id.executeTime);
-            recordView = itemView;
+            parentRelativeLayout = (RelativeLayout) itemView.findViewById(R.id.relativeLayout);     // 아래 항목들을 담을 Layout
+            appName = (TextView) itemView.findViewById(R.id.txtName);   // 어플 이름
+            mLastTimeUsed = (TextView) itemView.findViewById(R.id.textview_last_time_used);     // 마지막 실행기록
+            appIcon = (ImageView) itemView.findViewById(R.id.appIcon);      // 어플 아이콘
+            install = (TextView) itemView.findViewById(R.id.txtInstall);    // 설치 날짜시간
+            executeTime = (TextView) itemView.findViewById(R.id.executeTime);   // 해당일 실행시간
         }
 
         public TextView getLastTimeUsed() {
@@ -98,22 +92,20 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
 
         void onBind(AppInfo appInfo, int position) {    // 받아온 appInfo의 정보들을 set함
             this.appInfo = appInfo;
-            this.position = position;
 
             appName.setText(appInfo.getAppName());
-
+            // 실행기록 분류
             long nowTime = System.currentTimeMillis();
             long lastTimeUsed = mCustomUsageStatsList.get(position).usageStats.getLastTimeUsed();
             long gap = nowTime - lastTimeUsed;
-            long days = gap/(60*60*24*1000);
+            long days = gap / (60 * 60 * 24 * 1000);
             if (lastTimeUsed <= 0) { // 실행기록이 없을 때의 lastTimeUsed의 값
                 getLastTimeUsed().setText("한 달 이내의 실행기록이 없습니다!");
                 getLastTimeUsed().setTextColor(0xFFDC143C);
-            }else if(days<=30 && days>14){
+            } else if (days <= 30 && days > 14) {
                 getLastTimeUsed().setText("2주 이내의 실행기록이 없습니다!");
                 getLastTimeUsed().setTextColor(0xFFFF6347);
-            }
-            else {
+            } else {
                 getLastTimeUsed().setText("실행 기록: " + mDateFormat.format(new Date(lastTimeUsed)));
                 getLastTimeUsed().setTextColor(0x5C000000);
             }
@@ -132,7 +124,6 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
 
         @Override
         public void onClick(View v) {
-
             switch (v.getId()) {
                 case R.id.relativeLayout:
 
@@ -141,9 +132,14 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
         }
 
         @Override
-        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {   // 어플 아이템항목 롱클릭 했을때 나오는 메뉴
+            MenuItem Block;
+
             MenuItem Delete = menu.add(Menu.NONE, R.id.menu_delete, 1, "어플 삭제");
-            MenuItem Block = menu.add(Menu.NONE, R.id.menu_block, 2, "어플 차단");
+            if (blockFlag == false)     // 차단을 안했으면
+                Block = menu.add(Menu.NONE, R.id.menu_block, 2, "어플 차단");
+            else    // 이미 차단을 했으면
+                Block = menu.add(Menu.NONE, R.id.menu_block, 2, "차단 해제");
             MenuItem Info = menu.add(Menu.NONE, R.id.menu_info, 3, "어플 정보");
 
             Delete.setOnMenuItemClickListener(onMenuItemClickListener);
@@ -160,7 +156,14 @@ public class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapte
                         Intent it = new Intent(Intent.ACTION_DELETE, uri);
                         context.startActivity(it);
                         return true;
-                    case R.id.menu_block:
+                    case R.id.menu_block:   // 선택 어플 차단/차단해제
+                        if (blockFlag) {    // 차단되어 있는 상태
+                            Toast.makeText(context, "\""+appInfo.getAppName()+"\" "+"어플이 차단이 해제되었습니다.", Toast.LENGTH_SHORT).show();
+                            blockFlag = !blockFlag;
+                        }else{    // 차단되어 있지 않은 상태
+                            Toast.makeText(context, "\""+appInfo.getAppName()+"\" "+"어플이 차단되었습니다.", Toast.LENGTH_SHORT).show();
+                            blockFlag = !blockFlag;
+                        }
                         return true;
                     case R.id.menu_info:// 선택 어플 정보
                         Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
