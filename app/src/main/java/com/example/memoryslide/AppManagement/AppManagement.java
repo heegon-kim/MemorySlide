@@ -1,4 +1,4 @@
-package com.example.memoryslide;
+package com.example.memoryslide.AppManagement;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -28,6 +28,8 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.memoryslide.R;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
