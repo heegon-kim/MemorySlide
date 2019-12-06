@@ -1,13 +1,11 @@
 package com.example.memoryslide;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
@@ -25,8 +23,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 public class Battery extends Fragment {
@@ -40,9 +36,12 @@ public class Battery extends Fragment {
         static int chargeStatus;
         static int remain;
         // static long chargeTime=0;
-
-
     }
+
+
+    int prefCount = 0;
+    int prefRemainCount = 0;
+    int previousStatus = 0;
 
 
     private OnFragmentInteractionListener mListener;
@@ -60,7 +59,6 @@ public class Battery extends Fragment {
     //Activity activity;
     BroadcastReceiver br;
     View view;
-    SharedPreferences pref = null;
     private static Handler mHandler ;
     public Battery() {
         // Required empty public constructor
@@ -183,7 +181,6 @@ public class Battery extends Fragment {
                     BtInfo.chargeStatus = intent.getIntExtra("plugged", 0);
                     BtInfo.remain = intent.getIntExtra("level", 0) * 100
                             /intent.getIntExtra("scale", 100);
-                  //  Log.d("mymy", "onReceive() after "+BtInfo.health);
                 }
             }
         };
@@ -198,14 +195,14 @@ public class Battery extends Fragment {
         view = inflater.inflate(R.layout.fragment_battery, container, false);
         //mstatus = view.findViewById(R.id.percent_text);
         //int num = setup();
-        Log.d("mymy", "setup()");
-        Log.d("mymy", "setup()after ");
         //mstatus.setText(""+num);
         return view;
     }
     @SuppressLint("HandlerLeak")
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        SharedPreferences pref = this.getActivity().getSharedPreferences("pref", Context.MODE_PRIVATE);
+        final SharedPreferences.Editor editor = pref.edit();
         super.onActivityCreated(savedInstanceState);
         percent_text = view.findViewById(R.id.percent_text);
         mStatus = view.findViewById(R.id.mstatus);
@@ -221,14 +218,29 @@ public class Battery extends Fragment {
             @Override
             public void handleMessage(Message msg) {
 
+
                 setup();
+                if(BtInfo.status != previousStatus){
+                    Log.d("StatusSet0", "set"+BtInfo.status);
+                    prefCount++;
+                    editor.putInt(Integer.toString(prefCount), BtInfo.status);
+                    Log.d("StatusSet1", Integer.toString(BtInfo.status));
+                    previousStatus = BtInfo.status;
+                    Log.d("StatusSet2", Integer.toString(BtInfo.status));
+                    if(prefCount > 10){
+                        editor.remove(Integer.toString(prefCount-10));
+                    }
+
+                    prefRemainCount++;
+                    String str = "remain";
+                    editor.putInt("str"+Integer.toString(prefRemainCount), BtInfo.remain);
+                    if(prefRemainCount > 0){
+                        editor.remove("str"+Integer.toString(prefRemainCount));
+                    }
+                    editor.putInt("maxnum", prefCount);
+                    editor.commit();
+                }
                 setMyView();
-                /*percent_text.setText(""+BtInfo.remain);
-                mStatus.setText(""+BtInfo.status);
-                mTemp.setText(""+BtInfo.temperature+" °C");
-                mVolta.setText(""+BtInfo.voltage+" V");
-                mChargeStatus.setText(""+BtInfo.chargeStatus);
-                mHealth.setText(""+BtInfo.health);*/
             }
         } ;
         class NewRunnable implements Runnable{
@@ -236,7 +248,6 @@ public class Battery extends Fragment {
             @Override
             public void run(){
                 while(true){
-
                     try{
                         Thread.sleep(1000);
                     } catch (Exception e){
