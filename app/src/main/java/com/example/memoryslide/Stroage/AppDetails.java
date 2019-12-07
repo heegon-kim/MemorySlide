@@ -1,4 +1,4 @@
-package com.example.memoryslide;
+package com.example.memoryslide.Stroage;
 import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.graphics.drawable.Drawable;

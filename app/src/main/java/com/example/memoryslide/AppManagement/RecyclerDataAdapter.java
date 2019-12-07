@@ -17,6 +17,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.memoryslide.AppManagement.AppInfo;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;

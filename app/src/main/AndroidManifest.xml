@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" /> <!-- 어플 삭제 화면으로 이동 -->
+
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" /> <!-- 외부저장소 쓰기권한 획득(속도 측정 및 읽기권한) -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.GET_PACKAGE_SIZE" />

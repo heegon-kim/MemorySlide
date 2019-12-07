@@ -1,8 +1,7 @@
-package com.example.memoryslide;
+package com.example.memoryslide.Stroage;
 
-import android.app.AlertDialog;
+import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,14 +10,15 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompatSideChannelService;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
-import android.os.StatFs;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,20 +28,15 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+
 import android.content.pm.PackageStats;
+import android.widget.Toast;
+
+import com.example.memoryslide.R;
 
 public class Storage extends Fragment {
     private OnFragmentInteractionListener mListener;
@@ -104,13 +99,18 @@ public class Storage extends Fragment {
         text_totalCacheShare = v.findViewById(R.id.TotalCacheShare);
         text_cacheComment = v.findViewById(R.id.cacheComment);
 
+        if(!permissionCheck())
+        {
+            Toast.makeText(getActivity(), "권한이 허가되지 않아 저장장치 측정이 불가능 합니다.", Toast.LENGTH_LONG).show();
+        }
+
         new Thread(new Runnable() {
             @Override
-            public void run()
-            {
+            public void run() {
                 packageSize = 0;
                 getpackageSize();
-            }}).start();
+            }
+        }).start();
     }
 
     @Override
@@ -137,7 +137,6 @@ public class Storage extends Fragment {
     //---------------------------------------------------------------LIFE TIME-----------------------------------------------------------------------//
 
 
-
     //---------------------------------------------------------------------뷰------------------------------------------------------------------------//
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
@@ -147,8 +146,12 @@ public class Storage extends Fragment {
     public class updateViewThread extends Thread {
         public void run() {
             while (true) {
-                Message msg = han.obtainMessage();
-                han.sendMessage(msg);
+                if(permissionCheck())
+                {
+                    Message msg = han.obtainMessage();
+                    han.sendMessage(msg);
+                }
+
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -158,8 +161,7 @@ public class Storage extends Fragment {
         }
     }
 
-    private void updateView()
-    {//뷰를 데이터에 맞게 업데이트
+    private void updateView() {//뷰를 데이터에 맞게 업데이트
         long size_total = StorageTools.getExternalStorageMemorySize(0) + StorageTools.getInternStorageMemorySize(0);
         long size_current = StorageTools.getExternalStorageMemorySize(2) + StorageTools.getInternStorageMemorySize(2);
         long percentage_Current = (long) ((float) size_current / (float) size_total * 100);
@@ -238,10 +240,12 @@ public class Storage extends Fragment {
 
     public class performanceHandler extends Handler {
         @Override
-        public void handleMessage(@NonNull Message msg) {
+        public void handleMessage(@NonNull Message msg)
+        {
             super.handleMessage(msg);
+
             text_StoragePerformance.setText("쓰기 속도 : " + StorageTools.getFileSize(StorageTools.writeTest(Environment.getExternalStorageDirectory(), 100)) + "/ sec\n"
-                    + "읽기 속도 : " + StorageTools.getFileSize(StorageTools.readTest(Environment.getExternalStorageDirectory(), 100)) + "/ sec");
+                        + "읽기 속도 : " + StorageTools.getFileSize(StorageTools.readTest(Environment.getExternalStorageDirectory(), 100)) + "/ sec");
             updateView();
         }
     }
@@ -255,16 +259,15 @@ public class Storage extends Fragment {
             if (v.getId() == R.id.button_CacheCleaner) {
                 new Thread(new Runnable() {
                     @Override
-                    public void run()
-                    {
+                    public void run() {
                         packageSize = 0;
                         getpackageSize();
-                    }}).start();
+                    }
+                }).start();
             }
         }
     }
     //-------------------------------------------------------------------이벤트----------------------------------------------------------------------//
-
 
 
     //-------------------------------------------------------------------캐시------------------------------------------------------------------------//
@@ -273,11 +276,13 @@ public class Storage extends Fragment {
     public ArrayList<AppDetails.PackageInfoStruct> res;
 
     private void getpackageSize() {
+
         cAppDetails = new AppDetails(this.getActivity());
         res = cAppDetails.getPackages();
         if (res == null)
             return;
-        for (int m = 0; m < res.size(); m++) {
+        for (int m = 0; m < res.size(); m++)
+        {
             PackageManager pm = getActivity().getPackageManager();
             Method getPackageSizeInfo;
             try {
@@ -298,8 +303,6 @@ public class Storage extends Fragment {
                 e.printStackTrace();
             }
         }
-
-        Log.v("Total Cache Size", " " + packageSize);
     }
 
     private Handler cacheSizeHandler = new Handler() {
@@ -307,26 +310,20 @@ public class Storage extends Fragment {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case FETCH_PACKAGE_SIZE_COMPLETED:
-                    if (packageSize > 0)
-                    {
+                    if (packageSize > 0) {
                         long size_current = StorageTools.getExternalStorageMemorySize(1) + StorageTools.getInternStorageMemorySize(1);
-                        float percent = (float)Math.round((float)packageSize/size_current*10000)/100;
+                        float percent = (float) Math.round((float) packageSize / size_current * 10000) / 100;
 
                         text_totalCacheSize.setText("Cache Size : " + StorageTools.getFileSize(packageSize));
                         text_totalCacheShare.setText("Cache Share : " + percent + "%" + "   (CacheSize / RemainStorage)");
-                        if(percent < 5)
-                        {
+                        if (percent < 5) {
                             text_cacheComment.setText(R.string.storage_cache_default);
                             text_cacheComment.setTextColor(Color.parseColor("#32CD32"));
 
-                        }
-                        else if(percent < 10)
-                        {
+                        } else if (percent < 10) {
                             text_cacheComment.setText(R.string.storage_cache_little);
                             text_cacheComment.setTextColor(Color.parseColor("#FF4500"));
-                        }
-                        else
-                        {
+                        } else {
                             text_cacheComment.setText(R.string.storage_cache_floods);
                             text_cacheComment.setTextColor(Color.parseColor("#FF0000"));
                         }
@@ -342,13 +339,37 @@ public class Storage extends Fragment {
         @Override
         public void onGetStatsCompleted(PackageStats pStats, boolean succeeded)
                 throws RemoteException {
-            Log.d("Package Size", pStats.packageName + "");
-            Log.i("Cache Size", pStats.cacheSize + "");
-            Log.w("Data Size", pStats.dataSize + "");
             packageSize = packageSize + pStats.cacheSize;
-            Log.v("Total Cache Size", " " + packageSize);
             cacheSizeHandler.sendEmptyMessage(FETCH_PACKAGE_SIZE_COMPLETED);
         }
     }
     //-------------------------------------------------------------------캐시------------------------------------------------------------------------//
+
+    //-------------------------------------------------------------------Permission------------------------------------------------------------------//
+
+    int permissionWriteExternalStroage;
+
+    private boolean permissionCheck() {
+        permissionWriteExternalStroage = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permissionWriteExternalStroage == PackageManager.PERMISSION_GRANTED)
+        {
+            return true;
+        }
+        else
+        {
+            Toast.makeText(getActivity(), "권한 승인이 필요합니다", Toast.LENGTH_LONG).show();
+            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.CAMERA))
+            {
+                Toast.makeText(getActivity(), "저장장치 성능 측정을 위해 외부 저장소 쓰기권한이 필요합니다.", Toast.LENGTH_LONG).show();
+            }
+            else
+            {
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, permissionWriteExternalStroage);
+                Toast.makeText(getActivity(), "저장장치 성능 측정을 위해 외부 저장소 쓰기권한이 필요합니다.", Toast.LENGTH_LONG).show();
+            }
+        }
+        return  false;
+    }
+    //-------------------------------------------------------------------Permission------------------------------------------------------------------//
 }

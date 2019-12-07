@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.example.memoryslide.AppManagement.AppManagement;
+import com.example.memoryslide.Stroage.Storage;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.viewpager.widget.ViewPager;

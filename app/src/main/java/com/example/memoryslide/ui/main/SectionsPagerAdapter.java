@@ -11,7 +11,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import com.example.memoryslide.AppManagement.AppManagement;
 import com.example.memoryslide.Battery;
 import com.example.memoryslide.R;
-import com.example.memoryslide.Storage;
+import com.example.memoryslide.Stroage.Storage;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to

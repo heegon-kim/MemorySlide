@@ -1,4 +1,4 @@
-package com.example.memoryslide;
+package com.example.memoryslide.AppManagement;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -11,13 +11,6 @@ import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
@@ -28,6 +21,15 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.memoryslide.R;
+import com.example.memoryslide.RecyclerDataAdapter;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
