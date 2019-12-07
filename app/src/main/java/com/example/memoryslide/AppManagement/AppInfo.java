@@ -1,4 +1,4 @@
-package com.example.memoryslide;
+package com.example.memoryslide.AppManagement;
 
 import android.app.usage.UsageStats;
 import android.graphics.drawable.Drawable;
