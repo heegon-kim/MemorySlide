@@ -2,6 +2,7 @@ package com.example.memoryslide.Stroage;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -19,6 +20,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -102,6 +104,10 @@ public class Storage extends Fragment {
         if(!permissionCheck())
         {
             Toast.makeText(getActivity(), "권한이 허가되지 않아 저장장치 측정이 불가능 합니다.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(),
+                    getString(R.string.explanation_access_to_appusage_is_not_enabled),
+                    Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
         }
 
         new Thread(new Runnable() {
