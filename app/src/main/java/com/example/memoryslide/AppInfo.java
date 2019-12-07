@@ -9,6 +9,8 @@ public class AppInfo {
     public String installDate;
     public UsageStats usageStats;
     public String executeTime;
+    public boolean blockingState;
+    public int spinnerPos;
 
     public String getAppName() {
         return this.appName;
