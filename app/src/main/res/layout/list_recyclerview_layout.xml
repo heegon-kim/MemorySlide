@@ -18,7 +18,7 @@
         android:layout_marginBottom="10dp" />
 
     <TextView
-        android:id="@+id/appName"
+        android:id="@+id/txtName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -29,21 +29,11 @@
         android:textSize="15sp" />
 
     <TextView
-        android:id="@+id/blockState"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="15dp"
-        android:layout_toRightOf="@id/appName"
-        android:textColor="#9C27B0"
-        android:textSize="10sp" />
-
-    <TextView
         android:id="@+id/textview_last_time_used"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/appName"
-        android:layout_alignStart="@id/appName"
+        android:layout_below="@id/txtName"
+        android:layout_alignStart="@id/txtName"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="10dp"
         android:textColor="#5C000000"
