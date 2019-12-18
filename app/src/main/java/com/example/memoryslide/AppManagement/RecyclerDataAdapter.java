@@ -17,7 +17,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.memoryslide.BlockingAppService;
 import com.example.memoryslide.R;
 
 import java.io.BufferedWriter;
