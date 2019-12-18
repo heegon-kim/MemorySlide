@@ -147,6 +147,7 @@ public class Battery extends Fragment {
 
     }
 
+    //권한 허가 받기
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -165,13 +166,14 @@ public class Battery extends Fragment {
         }
 
     }
-    private void setup() // broadcastReceiver + registerReceiver
+
+    // broadcastReceiver + registerReceiver 장착
+    private void setup()
     {
         br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-              //  Log.d("mymy", "onReceive()");
 
                 if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
                     BtInfo.health = intent.getIntExtra("health", BatteryManager.BATTERY_HEALTH_UNKNOWN);
@@ -191,17 +193,15 @@ public class Battery extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_battery, container, false);
-        //mstatus = view.findViewById(R.id.percent_text);
-        //int num = setup();
-        //mstatus.setText(""+num);
         return view;
     }
+
     @SuppressLint("HandlerLeak")
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        SharedPreferences pref = this.getActivity().getSharedPreferences("pref", Context.MODE_PRIVATE);
+        //정보 저장을 위한 쉐어드프리퍼런스와 변수들
+        final SharedPreferences pref = this.getActivity().getSharedPreferences("pref", Context.MODE_PRIVATE);
         final SharedPreferences.Editor editor = pref.edit();
         super.onActivityCreated(savedInstanceState);
         percent_text = view.findViewById(R.id.percent_text);
@@ -218,7 +218,7 @@ public class Battery extends Fragment {
             @Override
             public void handleMessage(Message msg) {
 
-
+                //핸들러(정보 화면에 설정 + 하면서 그래프 그리기 위한 정보 쉐어드 프리퍼런스에 저장
                 setup();
                 if(BtInfo.status != previousStatus){
                     Log.d("StatusSet0", "set"+BtInfo.status);
@@ -233,12 +233,13 @@ public class Battery extends Fragment {
 
                     prefRemainCount++;
                     String str = "remain";
-                    editor.putInt("str"+Integer.toString(prefRemainCount), BtInfo.remain);
-                    if(prefRemainCount > 0){
-                        editor.remove("str"+Integer.toString(prefRemainCount));
+                    editor.putInt(str+prefRemainCount, BtInfo.remain);
+                    Log.d("ymym", "str put"+BtInfo.remain+" and prefRemainCount is "+ prefRemainCount);
+                    if(prefRemainCount > 10){
+                        editor.remove("str"+prefRemainCount);
                     }
                     editor.putInt("maxnum", prefCount);
-                    editor.commit();
+                    editor.apply();
                 }
                 setMyView();
             }
@@ -286,12 +287,6 @@ public class Battery extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        /*if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }*/
         _context = context;
     }
 
@@ -312,7 +307,4 @@ public class Battery extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
-
-
-
 }

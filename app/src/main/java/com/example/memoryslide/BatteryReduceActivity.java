@@ -2,6 +2,7 @@ package com.example.memoryslide;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.LocationManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -32,9 +33,6 @@ public class BatteryReduceActivity extends AppCompatActivity {//implements ListV
     Handler setHandler = new Handler();
     TextView rdText;
     private LineChart lineChart;
-
-
-
 
     public boolean loadItemsFromDB(ArrayList<ListViewItem> list) {
         ListViewItem item ;
@@ -111,25 +109,44 @@ public class BatteryReduceActivity extends AppCompatActivity {//implements ListV
         listview = (ListView) findViewById(R.id.listview1);
         listview.setAdapter(adapter);
 
+        //그래프 생성
         lineChart = (LineChart)findViewById(R.id.chart);
 
+        //그래프 데이터 설정
         List<Entry> entries = new ArrayList<>();
         SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
         int maxnum = pref.getInt("maxnum", 0);
+        int j = 1;
+        if(maxnum > 10)
+            for(int i=10; i>0; i--){
+            entries.add(new Entry(pref.getInt(Integer.toString(maxnum-i),0),
+                    pref.getInt("remain"+Integer.toString(maxnum-i),0)));
+                j++;
+            }
+        else for(int i=1; i<10; i++){
+            entries.add(new Entry(j,//pref.getInt(Integer.toString(i),0),
+                    pref.getInt("remain"+Integer.toString(i),0)));
+            j++;
+        }
 
-        //샘플 엔트리 1
-        entries.add(new Entry(pref.getInt(Integer.toString(maxnum-10),0),
-                pref.getInt("remain"+Integer.toString(maxnum-10),0)));
-
+        //그래프 디자인 설정
         LineDataSet lineDataSet = new LineDataSet(entries, "속성명1");
         lineDataSet.setLineWidth(2);
+        lineDataSet.setCircleRadius(6);
+        lineDataSet.setCircleColor(Color.parseColor("#FFA1B4DC"));
+        lineDataSet.setCircleColorHole(Color.BLUE);
+        lineDataSet.setColor(Color.parseColor("#FFA1B4DC"));
+        lineDataSet.setDrawCircleHole(true);
+        lineDataSet.setDrawCircles(true);
+        lineDataSet.setDrawHorizontalHighlightIndicator(false);
+        lineDataSet.setDrawHighlightIndicators(false);
+        lineDataSet.setDrawValues(false);
 
         LineData lineData = new LineData(lineDataSet);
         lineChart.setData(lineData);
     }
 
-
-
+    //현재 상태 3줄 텍스트 설정하는 메소드
     public void setTextByOn(int brightness, boolean wifiOn, boolean locationOn){
         String wString, cString;
 
