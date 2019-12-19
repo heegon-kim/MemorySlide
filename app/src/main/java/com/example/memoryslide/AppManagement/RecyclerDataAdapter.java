@@ -1,4 +1,4 @@
-package com.example.memoryslide;
+package com.example.memoryslide.AppManagement;
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,7 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.memoryslide.AppManagement.AppInfo;
+import com.example.memoryslide.R;
 
 import java.io.BufferedWriter;
 import java.io.File;

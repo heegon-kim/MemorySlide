@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.example.memoryslide"
-        minSdkVersion 22
+        minSdkVersion 28
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -30,13 +30,13 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.support:appcompat-v7:29.0'
-    //implementation 'com.android.support:recyclerview-v7:29.0.0'//RecyclerView 사용을 위한 lib
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     implementation 'androidx.preference:preference:1.1.0-alpha01'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
 
 
 }
