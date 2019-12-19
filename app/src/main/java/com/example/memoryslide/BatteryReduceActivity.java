@@ -134,7 +134,7 @@ public class BatteryReduceActivity extends AppCompatActivity {//implements ListV
         lineDataSet.setLineWidth(2);
         lineDataSet.setCircleRadius(6);
         lineDataSet.setCircleColor(Color.parseColor("#FFA1B4DC"));
-        lineDataSet.setCircleColorHole(Color.BLUE);
+        lineDataSet.setCircleHoleColor(Color.BLUE);
         lineDataSet.setColor(Color.parseColor("#FFA1B4DC"));
         lineDataSet.setDrawCircleHole(true);
         lineDataSet.setDrawCircles(true);

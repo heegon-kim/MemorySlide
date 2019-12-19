@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.memoryslide.R;
-import com.example.memoryslide.RecyclerDataAdapter;
+import com.example.memoryslide.AppManagement.RecyclerDataAdapter;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

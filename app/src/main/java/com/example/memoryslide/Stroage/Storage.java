@@ -1,10 +1,14 @@
 package com.example.memoryslide.Stroage;
 
 import android.Manifest;
+import android.app.AppOpsManager;
+import android.app.usage.StorageStats;
+import android.app.usage.StorageStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,10 +20,12 @@ import androidx.core.app.NotificationCompatSideChannelService;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,14 +37,19 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import android.content.pm.PackageStats;
 import android.widget.Toast;
 
 import com.example.memoryslide.R;
+
+import static androidx.constraintlayout.widget.Constraints.TAG;
 
 public class Storage extends Fragment {
     private OnFragmentInteractionListener mListener;
@@ -55,7 +66,7 @@ public class Storage extends Fragment {
     TextView text_cacheComment;
     public static final int FETCH_PACKAGE_SIZE_COMPLETED = 100;
 
-    //---------------------------------------------------------------LIFE TIME-----------------------------------------------------------------------//
+//---------------------------------------------------------------LIFE TIME-----------------------------------------------------------------------//
     public Storage() {
         // Required empty public constructor
     }
@@ -73,7 +84,7 @@ public class Storage extends Fragment {
         try {
             th.start();
         } catch (IllegalThreadStateException e) {
-            //스레드가 종료되지 않은 상태
+            //스레드가 종료되지 않은 상태, 시작하지 않음
         }
     }
 
@@ -101,20 +112,13 @@ public class Storage extends Fragment {
         text_totalCacheShare = v.findViewById(R.id.TotalCacheShare);
         text_cacheComment = v.findViewById(R.id.cacheComment);
 
-        if(!permissionCheck())
-        {
-            Toast.makeText(getActivity(), "권한이 허가되지 않아 저장장치 측정이 불가능 합니다.", Toast.LENGTH_LONG).show();
-            Toast.makeText(getActivity(),
-                    getString(R.string.explanation_access_to_appusage_is_not_enabled),
-                    Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
-        }
+
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 packageSize = 0;
-                getpackageSize();
+                getPackageSize();
             }
         }).start();
     }
@@ -167,7 +171,18 @@ public class Storage extends Fragment {
         }
     }
 
-    private void updateView() {//뷰를 데이터에 맞게 업데이트
+    private void updateView()
+    {//뷰를 데이터에 맞게 업데이트
+        if(!permissionCheck())
+        {
+            Toast.makeText(getActivity(), "권한이 허가되지 않아 저장장치 측정이 불가능 합니다.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(),
+                    getString(R.string.explanation_access_to_appusage_is_not_enabled),
+                    Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+            return;
+        }
+
         long size_total = StorageTools.getExternalStorageMemorySize(0) + StorageTools.getInternStorageMemorySize(0);
         long size_current = StorageTools.getExternalStorageMemorySize(2) + StorageTools.getInternStorageMemorySize(2);
         long percentage_Current = (long) ((float) size_current / (float) size_total * 100);
@@ -267,7 +282,7 @@ public class Storage extends Fragment {
                     @Override
                     public void run() {
                         packageSize = 0;
-                        getpackageSize();
+                        getPackageSize();
                     }
                 }).start();
             }
@@ -278,11 +293,46 @@ public class Storage extends Fragment {
 
     //-------------------------------------------------------------------캐시------------------------------------------------------------------------//
     long packageSize = 0, size = 0;
-    AppDetails cAppDetails;
+    //AppDetails cAppDetails;
     public ArrayList<AppDetails.PackageInfoStruct> res;
 
-    private void getpackageSize() {
+    private  void getPackageSize()
+    {// for API 28
+        StorageStatsManager statsManager = getActivity().getSystemService(StorageStatsManager.class);
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> ris = getActivity().getPackageManager().queryIntentActivities(intent, 0);
 
+        if (ris != null)
+        {
+            for (ResolveInfo ri : ris)
+            {
+                UUID uuid = ri.activityInfo.applicationInfo.storageUuid;
+                String packageName = ri.activityInfo.packageName;
+                UserHandle user = android.os.Process.myUserHandle();
+                Log.d(TAG, "packageName: " + packageName);
+                try
+                {
+                    StorageStats stats = statsManager.queryStatsForPackage(
+                            uuid, packageName, user);
+                    packageSize +=  stats.getCacheBytes();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+                catch (PackageManager.NameNotFoundException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        cacheSizeHandler.sendEmptyMessage(FETCH_PACKAGE_SIZE_COMPLETED);
+    }
+
+    /*private void getPackageSize()
+    {// for IceCreamCake
         cAppDetails = new AppDetails(this.getActivity());
         res = cAppDetails.getPackages();
         if (res == null)
@@ -309,9 +359,10 @@ public class Storage extends Fragment {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 
-    private Handler cacheSizeHandler = new Handler() {
+    private Handler cacheSizeHandler = new Handler()
+    {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -355,27 +406,26 @@ public class Storage extends Fragment {
 
     int permissionWriteExternalStroage;
 
-    private boolean permissionCheck() {
-        permissionWriteExternalStroage = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    private boolean permissionCheck()
+    {
+        boolean granted = false;
+        AppOpsManager appOps = (AppOpsManager) getActivity().getSystemService(Context.APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,android.os.Process.myUid(), getActivity().getPackageName());
 
-        if (permissionWriteExternalStroage == PackageManager.PERMISSION_GRANTED)
+        if (mode == AppOpsManager.MODE_DEFAULT) {
+            granted = (getActivity().checkCallingOrSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED);
+        } else {
+            granted = (mode == AppOpsManager.MODE_ALLOWED);
+        }
+        if (granted == false)
         {
-            return true;
+            return  false;
         }
         else
         {
-            Toast.makeText(getActivity(), "권한 승인이 필요합니다", Toast.LENGTH_LONG).show();
-            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.CAMERA))
-            {
-                Toast.makeText(getActivity(), "저장장치 성능 측정을 위해 외부 저장소 쓰기권한이 필요합니다.", Toast.LENGTH_LONG).show();
-            }
-            else
-            {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, permissionWriteExternalStroage);
-                Toast.makeText(getActivity(), "저장장치 성능 측정을 위해 외부 저장소 쓰기권한이 필요합니다.", Toast.LENGTH_LONG).show();
-            }
+            return true;
         }
-        return  false;
+
     }
     //-------------------------------------------------------------------Permission------------------------------------------------------------------//
 }
