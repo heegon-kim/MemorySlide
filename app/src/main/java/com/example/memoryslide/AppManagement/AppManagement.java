@@ -193,7 +193,6 @@ public class AppManagement extends Fragment {
                         }
 
 
-
                     } catch (PackageManager.NameNotFoundException e) {
                         Log.w(TAG, String.format("App Icon is not found for %s",
                                 customUsageStats.usageStats.getPackageName()));
@@ -206,6 +205,7 @@ public class AppManagement extends Fragment {
         }
         if (mPosition == 0) {   // 정렬기준이 "오랜전에 실행"
             Collections.sort(customUsageStatsList, new myComparatorAsc());  // 실행기록 오름차순 정렬
+            if (addingCount == 0) addingCount = 1;
             appCountText.setText(" " + --addingCount + " 개"); // 설치된 어플 개수 TextView
             noUsedApp.setText(" " + noTimeCount + " 개");    // 실행기록이 오래된 어플 개수
         } else if (mPosition == 1) {   // 정렬기준이 "최근에 실행"
